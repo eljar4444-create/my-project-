@@ -1,0 +1,44 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { PrismaClient } from '@prisma/client';
+import bcrypt from 'bcryptjs';
+import { z } from 'zod';
+
+const prisma = new PrismaClient();
+
+const LoginSchema = z.object({
+    email: z.string().email(),
+    password: z.string(),
+});
+
+export async function POST(req: NextRequest) {
+    try {
+        const body = await req.json();
+        const result = LoginSchema.safeParse(body);
+
+        if (!result.success) {
+            return NextResponse.json({ error: 'Invalid input' }, { status: 400 });
+        }
+
+        const { email, password } = result.data;
+
+        const user = await prisma.user.findUnique({ where: { email } });
+        if (!user || !user.password) {
+            return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
+        }
+
+        const isValid = await bcrypt.compare(password, user.password);
+        if (!isValid) {
+            return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
+        }
+
+        // Return user info for client-side session handling (localStorage for simplicity as per prototype)
+        return NextResponse.json({
+            success: true,
+            user: { id: user.id, email: user.email, role: user.role, name: user.name }
+        });
+
+    } catch (error) {
+        console.error('Login error:', error);
+        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    }
+}

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
+import { StripeElementsOptions } from '@stripe/stripe-js';
 import { completePayment } from '@/app/actions/payment';
 import Link from 'next/link';
 
@@ -144,12 +145,11 @@ export default function CardPaymentPage({ params }: { params: { id: string } }) 
             });
     }, [isStripeEnabled]);
 
-    const appearance = {
+    const appearance: StripeElementsOptions['appearance'] = {
         theme: 'stripe',
     };
 
-    // @ts-ignore
-    const options = {
+    const options: StripeElementsOptions = {
         clientSecret,
         appearance,
     };

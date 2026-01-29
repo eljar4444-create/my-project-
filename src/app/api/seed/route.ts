@@ -33,12 +33,6 @@ export async function GET(req: Request) {
             results.push(`Synced Category: ${cat.name}`);
         }
 
-        return NextResponse.json({
-            success: true,
-            message: 'Categories synced successfully',
-            details: results
-        });
-
         // --- Migrate Specific Provider & Service (Emil) ---
 
         // 1. Ensure City exists (Munich/Berlin)
@@ -106,6 +100,7 @@ export async function GET(req: Request) {
 
         return NextResponse.json({
             success: true,
+            version: 'v2-emil-migration',
             message: 'Data synced successfully',
             details: results
         });

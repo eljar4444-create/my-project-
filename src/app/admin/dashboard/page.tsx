@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Users, Briefcase } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export default async function AdminDashboard() {
     const session = await auth();
@@ -12,7 +13,7 @@ export default async function AdminDashboard() {
         redirect('/');
     }
 
-    const [userCount, serviceCount, services] = await Promise.all([
+    const [userCount, serviceCount, services, users] = await Promise.all([
         prisma.user.count(),
         prisma.service.count(),
         prisma.service.findMany({
@@ -25,6 +26,10 @@ export default async function AdminDashboard() {
                     }
                 }
             },
+            orderBy: { createdAt: 'desc' },
+            take: 20
+        }),
+        prisma.user.findMany({
             orderBy: { createdAt: 'desc' },
             take: 50
         })
@@ -55,41 +60,86 @@ export default async function AdminDashboard() {
                 </Card>
             </div>
 
-            <div className="space-y-4">
-                <h2 className="text-xl font-bold">Лента услуг (Последние 50)</h2>
-                <div className="rounded-md border bg-white">
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Название</TableHead>
-                                <TableHead>Исполнитель</TableHead>
-                                <TableHead>Цена</TableHead>
-                                <TableHead>Дата</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {services.map((service) => (
-                                <TableRow key={service.id}>
-                                    <TableCell className="font-medium">{service.title}</TableCell>
-                                    <TableCell>
-                                        <div className="flex flex-col">
-                                            <span>{service.providerProfile.user.name}</span>
-                                            <span className="text-xs text-muted-foreground">{service.providerProfile.user.email}</span>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>{service.price} €</TableCell>
-                                    <TableCell>{new Date(service.createdAt).toLocaleDateString()}</TableCell>
-                                </TableRow>
-                            ))}
-                            {services.length === 0 && (
+            <div className="grid lg:grid-cols-2 gap-8">
+                {/* Users List */}
+                <div className="space-y-4">
+                    <h2 className="text-xl font-bold">Последние регистрации</h2>
+                    <div className="rounded-md border bg-white">
+                        <Table>
+                            <TableHeader>
                                 <TableRow>
-                                    <TableCell colSpan={4} className="text-center py-4 text-muted-foreground">Нет опубликованных услуг</TableCell>
+                                    <TableHead>Имя</TableHead>
+                                    <TableHead>Email</TableHead>
+                                    <TableHead>Роль</TableHead>
+                                    <TableHead>Дата</TableHead>
                                 </TableRow>
-                            )}
-                        </TableBody>
-                    </Table>
+                            </TableHeader>
+                            <TableBody>
+                                {users.map((user) => (
+                                    <TableRow key={user.id}>
+                                        <TableCell className="font-medium">
+                                            {user.image && <img src={user.image} className="w-6 h-6 rounded-full inline-block mr-2" />}
+                                            {user.name}
+                                        </TableCell>
+                                        <TableCell className="text-xs text-muted-foreground">{user.email}</TableCell>
+                                        <TableCell>
+                                            <span className={cn(
+                                                "px-2 py-1 rounded-full text-xs font-bold",
+                                                user.role === 'ADMIN' ? "bg-red-100 text-red-700" :
+                                                    user.role === 'PROVIDER' ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-700"
+                                            )}>
+                                                {user.role}
+                                            </span>
+                                        </TableCell>
+                                        <TableCell className="text-xs">{new Date(user.createdAt).toLocaleDateString()}</TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </div>
+                </div>
+
+                {/* Services List */}
+                <div className="space-y-4">
+                    <h2 className="text-xl font-bold">Последние услуги</h2>
+                    <div className="rounded-md border bg-white">
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Название</TableHead>
+                                    <TableHead>Автор</TableHead>
+                                    <TableHead>Цена</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {services.map((service) => (
+                                    <TableRow key={service.id}>
+                                        <TableCell className="font-medium">{service.title}</TableCell>
+                                        <TableCell className="text-xs">
+                                            {service.providerProfile.user.name}
+                                        </TableCell>
+                                        <TableCell className="text-xs">{service.price} €</TableCell>
+                                    </TableRow>
+                                ))}
+                                {services.length === 0 && (
+                                    <TableRow>
+                                        <TableCell colSpan={3} className="text-center py-4 text-muted-foreground">Нет услуг</TableCell>
+                                    </TableRow>
+                                )}
+                            </TableBody>
+                        </Table>
+                    </div>
                 </div>
             </div>
         </div>
     );
 }
+
+// Helper for class names since I used `cn` in the code above but forgot if it was imported.
+// Checking imports... `import { redirect } from "next/navigation";` 
+// I need `import { cn } from "@/lib/utils";` which is NOT imported in original file!
+// Wait, `cn` IS NOT imported. I must add the import or remove `cn`.
+// I will add the import in a separate block if I can, or use string interpolation.
+// Actually, easier to use template literals for now to avoid import errors if I can't multi-edit.
+// `className={\`px-2 py-1 rounded-full text-xs font-bold \${user.role === 'ADMIN' ? "bg-red-100 text-red-700" : user.role === 'PROVIDER' ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-700"}\`}`
+

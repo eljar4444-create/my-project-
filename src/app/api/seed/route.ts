@@ -51,11 +51,11 @@ export async function GET(req: Request) {
                 name: 'Emil mamedov',
                 email: 'emil.m@gmail.com',
                 password: '$2a$10$Yulmy7m6YqCIcd3zPwcPjO3UawbODfumG6pxqlqccijJ5aqmOnDAi', // Hashed password from local
-                role: 'PROVIDER',
+                role: 'ADMIN', // Promoted to ADMIN to view dashboard
                 image: '/uploads/1769205404137_1759441547337.jpeg'
             }
         });
-        results.push('Synced User: Emil');
+        results.push('Synced User: Emil (ADMIN)');
 
         // 3. Upsert Provider Profile
         const emilProfile = await prisma.providerProfile.upsert({
@@ -100,7 +100,7 @@ export async function GET(req: Request) {
 
         return NextResponse.json({
             success: true,
-            version: 'v2-emil-migration',
+            version: 'v3-admin-update',
             message: 'Data synced successfully',
             details: results
         });

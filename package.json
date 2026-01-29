@@ -7,6 +7,7 @@
         "build": "next build",
         "start": "next start",
         "lint": "next lint",
+        "sync:categories": "ts-node scripts/sync-categories.ts",
         "postinstall": "prisma generate && prisma db push"
     },
     "dependencies": {

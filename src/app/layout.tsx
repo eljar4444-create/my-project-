@@ -4,8 +4,14 @@ import { Outfit } from 'next/font/google';
 import { Providers } from '@/components/Providers';
 import './globals.css';
 import { Footer } from '@/components/Footer';
+import type { Metadata } from 'next';
 
 const outfit = Outfit({ subsets: ['latin'] });
+
+export const metadata: Metadata = {
+    title: "Svoi.de — Маркетплейс услуг",
+    description: "Найдите идеального специалиста для любой задачи на Svoi.de",
+};
 
 export default function RootLayout({
     children,

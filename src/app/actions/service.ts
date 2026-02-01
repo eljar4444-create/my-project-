@@ -76,7 +76,7 @@ export async function createService(prevState: any, formData: FormData) {
                 title: finalTitle,
                 description,
                 price: price || 0,
-                status: 'PAYMENT_PENDING',
+                status: 'PENDING',
                 providerProfileId: providerProfile.id,
                 categoryId: category.id,
                 cityId: city.id,
@@ -101,7 +101,7 @@ export async function createService(prevState: any, formData: FormData) {
 
         revalidatePath('/provider/profile');
         revalidatePath('/admin/moderation');
-        redirect(`/provider/services/${service.id}/payment`);
+        redirect('/provider/profile');
 
     } catch (e: any) {
         if (e.message === 'NEXT_REDIRECT' || e.digest?.includes('NEXT_REDIRECT')) throw e;

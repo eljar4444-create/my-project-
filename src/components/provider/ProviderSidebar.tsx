@@ -8,11 +8,11 @@ export function ProviderSidebar() {
     const pathname = usePathname();
 
     const menuItems = [
-        { label: 'Профиль', href: '/provider/profile', active: pathname === '/provider/profile' },
-        { label: 'Фото профиля', href: '/provider/profile/photo', active: pathname?.startsWith('/provider/profile/photo') },
-        { label: 'Адреса', href: '/provider/profile/address', active: pathname?.startsWith('/provider/profile/address') },
-        { label: 'О себе', href: '/provider/profile/about', active: pathname?.startsWith('/provider/profile/about') },
-        { label: 'Специальности', href: '/provider/profile/specialties', active: pathname?.startsWith('/provider/profile/specialties') },
+        { label: 'Профиль', href: '/provider/profile', active: pathname === '/provider/profile' && !pathname.includes('#') },
+        { label: 'Фото профиля', href: '#photo', active: false },
+        { label: 'Адреса', href: '#address', active: false },
+        { label: 'О себе', href: '#about', active: false },
+        { label: 'Специальности', href: '#specialties', active: false },
     ];
 
     return (

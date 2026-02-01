@@ -151,34 +151,42 @@ interface ProfileStatsGridProps {
 export function ProfileStatsGrid({ hasPhoto, hasAddress, bioLength, specialtiesCount }: ProfileStatsGridProps) {
     return (
         <div className="grid md:grid-cols-2 gap-4">
-            <StatusCard
-                icon={<Camera className="w-5 h-5 text-blue-600" />}
-                iconBg="bg-blue-100"
-                title="Фото профиля"
-                subtitle={hasPhoto ? "Фото добавлено" : "Фото не добавлено"}
-                badge={hasPhoto ? "OK" : undefined}
-            />
-            <StatusCard
-                icon={<MapPin className="w-5 h-5 text-fuchsia-600" />}
-                iconBg="bg-fuchsia-100"
-                title="Адреса"
-                subtitle={hasAddress ? "Адрес добавлен" : "Адрес не добавлен"}
-                badge={hasAddress ? "OK" : undefined}
-            />
-            <StatusCard
-                icon={<Info className="w-5 h-5 text-orange-600" />}
-                iconBg="bg-orange-100"
-                title="О себе"
-                subtitle={bioLength > 0 ? `Заполнено символов: ${bioLength}` : "Не заполнено"}
-                badge={bioLength > 20 ? "OK" : undefined}
-            />
-            <StatusCard
-                icon={<Briefcase className="w-5 h-5 text-cyan-600" />}
-                iconBg="bg-cyan-100"
-                title="Специальности"
-                subtitle={`Специальности добавлены (${specialtiesCount})`}
-                badge={specialtiesCount > 0 ? "OK" : undefined}
-            />
+            <div id="photo" className="h-full">
+                <StatusCard
+                    icon={<Camera className="w-5 h-5 text-blue-600" />}
+                    iconBg="bg-blue-100"
+                    title="Фото профиля"
+                    subtitle={hasPhoto ? "Фото добавлено" : "Фото не добавлено"}
+                    badge={hasPhoto ? "OK" : undefined}
+                />
+            </div>
+            <div id="address" className="h-full">
+                <StatusCard
+                    icon={<MapPin className="w-5 h-5 text-fuchsia-600" />}
+                    iconBg="bg-fuchsia-100"
+                    title="Адреса"
+                    subtitle={hasAddress ? "Адрес добавлен" : "Адрес не добавлен"}
+                    badge={hasAddress ? "OK" : undefined}
+                />
+            </div>
+            <div id="about" className="h-full">
+                <StatusCard
+                    icon={<Info className="w-5 h-5 text-orange-600" />}
+                    iconBg="bg-orange-100"
+                    title="О себе"
+                    subtitle={bioLength > 0 ? `Заполнено символов: ${bioLength}` : "Не заполнено"}
+                    badge={bioLength > 20 ? "OK" : undefined}
+                />
+            </div>
+            <div id="specialties" className="h-full">
+                <StatusCard
+                    icon={<Briefcase className="w-5 h-5 text-cyan-600" />}
+                    iconBg="bg-cyan-100"
+                    title="Специальности"
+                    subtitle={`Специальности добавлены (${specialtiesCount})`}
+                    badge={specialtiesCount > 0 ? "OK" : undefined}
+                />
+            </div>
         </div>
     );
 }

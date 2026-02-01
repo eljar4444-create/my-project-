@@ -51,7 +51,7 @@ export default async function ProviderProfile() {
     const specialtiesCount = new Set(services.map(s => s.category?.name).filter(Boolean)).size;
 
     return (
-        <>
+        <div className="container mx-auto px-4 py-8 max-w-7xl">
             <div className="text-center mb-8">
                 <h1 className="text-3xl font-bold mb-1">{user.name}</h1>
                 <p className="text-red-500 font-bold flex items-center justify-center gap-2">
@@ -88,6 +88,6 @@ export default async function ProviderProfile() {
             <ServicesList services={services} />
 
             <AddSpecialtyButton />
-        </>
+        </div>
     );
 }

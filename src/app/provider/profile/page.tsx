@@ -18,7 +18,13 @@ export default async function ProviderProfile() {
         redirect('/'); // Or create a provider profile if not exists? But role check is strict here.
     }
 
-    const user = session.user;
+    const sessionUser = session.user;
+
+    const user = await prisma.user.findUnique({
+        where: { id: sessionUser.id }
+    });
+
+    if (!user) return redirect('/auth/login');
 
     // Fetch provider profile for status and services
     const providerProfile = await prisma.providerProfile.findUnique({

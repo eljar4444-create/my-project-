@@ -9,6 +9,7 @@ import { useState } from 'react';
 
 interface EditProfileFormProps {
     initialData: {
+        name?: string | null;
         bio?: string | null;
         age?: number | null;
         education?: string | null;
@@ -22,6 +23,16 @@ export function EditProfileForm({ initialData }: EditProfileFormProps) {
             <h1 className="text-2xl font-bold mb-6 text-center text-gray-900">Редактирование профиля</h1>
 
             <form action={updateProviderProfile} className="space-y-6">
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Имя</label>
+                    <Input
+                        name="name"
+                        placeholder="Ваше имя"
+                        defaultValue={initialData.name || ''}
+                        className="bg-gray-50 border-gray-200 h-11 focus:bg-white transition-all"
+                    />
+                </div>
+
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">О себе (Био)</label>
                     <Textarea

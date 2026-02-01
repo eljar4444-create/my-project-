@@ -54,6 +54,16 @@ export async function updateProviderProfile(formData: FormData) {
     const education = formData.get('education') as string;
     const contactTime = formData.get('contactTime') as string;
 
+    const name = formData.get('name') as string;
+
+    // Update User name
+    if (name) {
+        await prisma.user.update({
+            where: { id: session.user.id },
+            data: { name }
+        });
+    }
+
     await prisma.providerProfile.update({
         where: { userId: session.user.id },
         data: {

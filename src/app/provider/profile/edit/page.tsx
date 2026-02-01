@@ -20,7 +20,7 @@ export default async function EditProfilePage() {
 
     return (
         <div className="min-h-screen bg-gray-50 py-12 px-4">
-            <EditProfileForm initialData={providerProfile} />
+            <EditProfileForm initialData={{ ...providerProfile, name: session.user.name }} />
         </div>
     );
 }

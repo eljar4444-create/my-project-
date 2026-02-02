@@ -9,6 +9,7 @@ export function ProviderSidebar() {
 
     const menuItems = [
         { label: 'Профиль', href: '/provider/profile', active: pathname === '/provider/profile' && !pathname.includes('#') },
+        { label: 'Запросы', href: '/provider/requests', active: pathname === '/provider/requests' },
         { label: 'Фото профиля', href: '#photo', active: false },
         { label: 'Адреса', href: '#address', active: false },
         { label: 'О себе', href: '#about', active: false },

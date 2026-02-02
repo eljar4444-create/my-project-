@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
+import { auth } from '@/auth';
 
 const prisma = new PrismaClient();
 
@@ -48,3 +49,54 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }
+
+export async function GET(req: NextRequest) {
+    try {
+        const session = await auth();
+
+        if (!session?.user) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
+        const user = session.user;
+
+        // Find provider profile for this user
+        const providerProfile = await prisma.providerProfile.findUnique({
+            where: { userId: user.id }
+        });
+
+        if (!providerProfile) {
+            return NextResponse.json({ error: 'Provider profile not found' }, { status: 404 });
+        }
+
+        const requests = await prisma.request.findMany({
+            where: {
+                providerProfileId: providerProfile.id
+            },
+            include: {
+                client: {
+                    select: {
+                        name: true,
+                        image: true,
+                        email: true
+                    }
+                },
+                service: {
+                    select: {
+                        title: true
+                    }
+                }
+            },
+            orderBy: {
+                createdAt: 'desc'
+            }
+        });
+
+        return NextResponse.json({ requests });
+
+    } catch (error) {
+        console.error('Fetch requests error:', error);
+        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    }
+}
+

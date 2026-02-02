@@ -163,6 +163,7 @@ model ChatMessage {
   content   String
   senderId  String
   requestId String
+  isRead    Boolean  @default(false)
   createdAt DateTime @default(now())
   
   request   Request  @relation(fields: [requestId], references: [id], onDelete: Cascade)

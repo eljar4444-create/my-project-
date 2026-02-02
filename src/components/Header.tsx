@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
+import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { useSession, signOut } from 'next-auth/react';
 import { AvatarDropdown } from '@/components/AvatarDropdown';
@@ -15,6 +16,25 @@ export function Header() {
     const isProviderPage = pathname?.startsWith('/provider');
     const [scrolled, setScrolled] = useState(false);
     const [isAvatarHovered, setIsAvatarHovered] = useState(false);
+    const [unreadCount, setUnreadCount] = useState(0);
+
+    useEffect(() => {
+        const fetchUnreadCount = async () => {
+            if (status !== 'authenticated') return;
+            try {
+                const res = await axios.get('/api/chat/unread');
+                if (res.data && typeof res.data.count === 'number') {
+                    setUnreadCount(res.data.count);
+                }
+            } catch (error) {
+                console.error('Failed to fetch unread count', error);
+            }
+        };
+
+        fetchUnreadCount();
+        const interval = setInterval(fetchUnreadCount, 30000);
+        return () => clearInterval(interval);
+    }, [status]);
 
     useEffect(() => {
         const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -127,10 +147,13 @@ export function Header() {
 
                     <div className="flex items-center gap-4">
                         <div className="flex items-center gap-5 text-gray-400">
-                            <Link href="/chat">
+                            <Link href="/chat" className="relative">
                                 <Button variant="ghost" size="icon" className="hover:text-gray-600 hover:bg-transparent">
                                     <span className="sr-only">Сообщения</span>
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-send rotate-[-45deg] mt-1"><path d="m22 2-7 20-4-9-9-4Z" /><path d="M22 2 11 13" /></svg>
+                                    {unreadCount > 0 && (
+                                        <span className="absolute top-2 right-2 h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-white" />
+                                    )}
                                 </Button>
                             </Link>
                             <Button variant="ghost" size="icon" className="hover:text-gray-600 hover:bg-transparent relative">

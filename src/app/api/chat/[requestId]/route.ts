@@ -21,6 +21,19 @@ export async function GET(req: NextRequest, { params }: { params: { requestId: s
             }
         });
 
+        // Mark messages from the OTHER party as read
+        await prisma.chatMessage.updateMany({
+            where: {
+                requestId,
+                isRead: false,
+                senderId: { not: session.user.id }
+            },
+            data: {
+                isRead: true
+            }
+        });
+
+
         const request = await prisma.request.findUnique({
             where: { id: requestId },
             select: {

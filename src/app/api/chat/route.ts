@@ -46,6 +46,16 @@ export async function GET(req: NextRequest) {
                 messages: {
                     orderBy: { createdAt: 'desc' },
                     take: 1
+                },
+                _count: {
+                    select: {
+                        messages: {
+                            where: {
+                                isRead: false,
+                                senderId: { not: user.id }
+                            }
+                        }
+                    }
                 }
             },
             orderBy: {
@@ -54,11 +64,12 @@ export async function GET(req: NextRequest) {
         });
 
         // Format for easy frontend consumption
-        const formattedRequests = requests.map(req => ({
+        const formattedRequests = requests.map((req: any) => ({
             id: req.id,
             serviceTitle: req.service.title,
             updatedAt: req.updatedAt,
             lastMessage: req.messages[0]?.content || req.message, // Fallback to initial message
+            unreadCount: req._count.messages,
             interlocutor: user.role === 'PROVIDER'
                 ? {
                     name: req.client.name || req.client.email,

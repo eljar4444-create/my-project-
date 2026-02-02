@@ -14,6 +14,7 @@ interface Conversation {
     serviceTitle: string;
     lastMessage: string;
     updatedAt: string;
+    unreadCount: number;
     interlocutor: {
         name: string | null;
         image: string | null;
@@ -49,6 +50,8 @@ export default function ChatPage() {
 
     useEffect(() => {
         fetchConversations();
+        const interval = setInterval(fetchConversations, 15000);
+        return () => clearInterval(interval);
     }, []);
 
     useEffect(() => {
@@ -153,11 +156,11 @@ export default function ChatPage() {
                                     key={chat.id}
                                     onClick={() => setSelectedChatId(chat.id)}
                                     className={cn(
-                                        "w-full text-left p-3 rounded-lg transition-all hover:bg-white hover:shadow-sm flex items-start gap-3",
+                                        "w-full text-left p-3 rounded-lg transition-all hover:bg-white hover:shadow-sm flex items-start gap-3 relative",
                                         selectedChatId === chat.id ? "bg-white shadow-md ring-1 ring-black/5" : "text-gray-600"
                                     )}
                                 >
-                                    <div className="relative">
+                                    <div className="relative shrink-0">
                                         {chat.interlocutor.image ? (
                                             <img src={chat.interlocutor.image} alt={chat.interlocutor.name || ''} className="w-10 h-10 rounded-full object-cover" />
                                         ) : (
@@ -165,17 +168,29 @@ export default function ChatPage() {
                                                 <User className="w-5 h-5" />
                                             </div>
                                         )}
+                                        {chat.unreadCount > 0 && (
+                                            <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] text-white ring-2 ring-white">
+                                                {chat.unreadCount}
+                                            </span>
+                                        )}
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <div className="flex justify-between items-baseline mb-1">
-                                            <h3 className="font-semibold text-sm truncate">{chat.interlocutor.name}</h3>
+                                            <h3 className={cn("text-sm truncate", chat.unreadCount > 0 ? "font-bold text-black" : "font-semibold")}>
+                                                {chat.interlocutor.name}
+                                            </h3>
                                             <span className="text-[10px] text-gray-400">
                                                 {format(new Date(chat.updatedAt), 'HH:mm')}
                                             </span>
                                         </div>
                                         <p className="text-xs text-blue-600 font-medium truncate mb-0.5">{chat.serviceTitle}</p>
-                                        <p className="text-xs text-gray-500 truncate">{chat.lastMessage}</p>
+                                        <p className={cn("text-xs truncate", chat.unreadCount > 0 ? "font-semibold text-gray-900" : "text-gray-500")}>
+                                            {chat.lastMessage}
+                                        </p>
                                     </div>
+                                    {chat.unreadCount > 0 && (
+                                        <div className="absolute right-3 top-1/2 -translate-y-1/2 h-2 w-2 rounded-full bg-blue-500" />
+                                    )}
                                 </button>
                             ))
                         )}

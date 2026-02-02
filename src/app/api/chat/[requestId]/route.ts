@@ -23,25 +23,31 @@ export async function GET(req: NextRequest, { params }: { params: { requestId: s
 
         const request = await prisma.request.findUnique({
             where: { id: requestId },
-            select: { message: true, createdAt: true, clientId: true }
+            select: {
+                message: true,
+                createdAt: true,
+                clientId: true,
+                client: {
+                    select: { id: true, name: true, image: true }
+                }
+            }
         })
 
+        let allMessages = [...messages];
+
         // Include the initial request message as the first message
-        if (request) {
+        if (request && request.message) {
             const initialMessage = {
-                id: 'initial',
+                id: `initial-${requestId}`,
                 content: request.message,
                 senderId: request.clientId,
                 createdAt: request.createdAt,
-                sender: null // Client info is fetched in the main list or we can fetch it here if needed, but for simplicity assuming we know who sent it
+                sender: request.client
             };
-            // Note: Efficiently handling this might require better unified structure, 
-            // but for now we prepend it if no messages exist or just rely on ChatMessage.
-            // Actually, best practice is to insert the initial request as a ChatMessage upon creation, 
-            // but for backward compatibility we can render it as a message.
+            allMessages = [initialMessage, ...messages];
         }
 
-        return NextResponse.json({ messages });
+        return NextResponse.json({ messages: allMessages });
     } catch (error) {
         return NextResponse.json({ error: 'Failed to fetch messages' }, { status: 500 });
     }

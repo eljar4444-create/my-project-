@@ -127,10 +127,12 @@ export function Header() {
 
                     <div className="flex items-center gap-4">
                         <div className="flex items-center gap-5 text-gray-400">
-                            <Button variant="ghost" size="icon" className="hover:text-gray-600 hover:bg-transparent">
-                                <span className="sr-only">Сообщения</span>
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-send rotate-[-45deg] mt-1"><path d="m22 2-7 20-4-9-9-4Z" /><path d="M22 2 11 13" /></svg>
-                            </Button>
+                            <Link href="/chat">
+                                <Button variant="ghost" size="icon" className="hover:text-gray-600 hover:bg-transparent">
+                                    <span className="sr-only">Сообщения</span>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-send rotate-[-45deg] mt-1"><path d="m22 2-7 20-4-9-9-4Z" /><path d="M22 2 11 13" /></svg>
+                                </Button>
+                            </Link>
                             <Button variant="ghost" size="icon" className="hover:text-gray-600 hover:bg-transparent relative">
                                 <span className="sr-only">Уведомления</span>
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="none" className="text-gray-400"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" /><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" /></svg>
@@ -213,10 +215,12 @@ export function Header() {
                 <div className="flex items-center gap-4 ml-4">
                     {user ? (
                         <div className="flex items-center gap-5 text-gray-400">
-                            <Button variant="ghost" size="icon" className="hover:text-gray-600 hover:bg-transparent">
-                                <span className="sr-only">Сообщения</span>
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-send rotate-[-45deg] mt-1"><path d="m22 2-7 20-4-9-9-4Z" /><path d="M22 2 11 13" /></svg>
-                            </Button>
+                            <Link href="/chat">
+                                <Button variant="ghost" size="icon" className="hover:text-gray-600 hover:bg-transparent">
+                                    <span className="sr-only">Сообщения</span>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-send rotate-[-45deg] mt-1"><path d="m22 2-7 20-4-9-9-4Z" /><path d="M22 2 11 13" /></svg>
+                                </Button>
+                            </Link>
                             <Button variant="ghost" size="icon" className="hover:text-gray-600 hover:bg-transparent relative">
                                 <span className="sr-only">Уведомления</span>
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="none" className="text-gray-400"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" /><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" /></svg>

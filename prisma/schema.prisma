@@ -25,6 +25,7 @@ model User {
   requests        Request[]        @relation("ClientRequests")
   reviews         Review[]         @relation("ClientReviews")
   sessions        Session[]
+  chatMessages    ChatMessage[]
 }
 
 model Account {
@@ -154,6 +155,18 @@ model Request {
   service           Service         @relation(fields: [serviceId], references: [id], onDelete: Cascade)
   providerProfile   ProviderProfile @relation("ProviderRequests", fields: [providerProfileId], references: [id], onDelete: Cascade)
   client            User            @relation("ClientRequests", fields: [clientId], references: [id], onDelete: Cascade)
+  messages          ChatMessage[]
+}
+
+model ChatMessage {
+  id        String   @id @default(uuid())
+  content   String
+  senderId  String
+  requestId String
+  createdAt DateTime @default(now())
+  
+  request   Request  @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  sender    User     @relation(fields: [senderId], references: [id], onDelete: Cascade)
 }
 
 model Review {

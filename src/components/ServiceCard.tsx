@@ -97,7 +97,6 @@ export function ServiceCard({ service }: { service: Service }) {
     };
 
     return (
-    return (
         <Card className="group flex flex-col w-full hover:shadow-xl transition-all duration-300 border-gray-100/60 bg-white/50 backdrop-blur-sm hover:bg-white overflow-hidden ring-1 ring-gray-900/5 relative">
             <div className="h-1 bg-gradient-to-r from-blue-500 to-indigo-500 w-full" />
 

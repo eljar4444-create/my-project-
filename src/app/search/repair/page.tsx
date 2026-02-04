@@ -7,7 +7,11 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
 
+import { useSession } from 'next-auth/react';
+
 function RepairSearchContent() {
+    const { data: session } = useSession();
+    const user = session?.user;
     const searchParams = useSearchParams();
     const serviceParam = searchParams.get('service');
     const selectedService = serviceParam ? serviceParam.toLowerCase() : null;
@@ -114,10 +118,21 @@ function RepairSearchContent() {
                         <CheckCircle2 className="w-5 h-5" />
                         Мои заказы
                     </Link>
-                    <Link href="/become-provider" className="flex items-center gap-3 hover:text-black transition-colors">
-                        <div className="w-5 h-5 border-2 border-current rounded-full flex items-center justify-center text-[10px] font-bold">🛠</div>
-                        Стать исполнителем
+                    <Link href="/my-orders" className="flex items-center gap-3 hover:text-black transition-colors">
+                        <CheckCircle2 className="w-5 h-5" />
+                        Мои заказы
                     </Link>
+                    {user?.role === 'PROVIDER' ? (
+                        <Link href="/provider/profile" className="flex items-center gap-3 hover:text-black transition-colors">
+                            <div className="w-5 h-5 border-2 border-current rounded-full flex items-center justify-center text-[10px] font-bold">🛠</div>
+                            Кабинет исполнителя
+                        </Link>
+                    ) : (
+                        <Link href="/become-provider" className="flex items-center gap-3 hover:text-black transition-colors">
+                            <div className="w-5 h-5 border-2 border-current rounded-full flex items-center justify-center text-[10px] font-bold">🛠</div>
+                            Стать исполнителем
+                        </Link>
+                    )}
                 </nav>
             </aside>
 

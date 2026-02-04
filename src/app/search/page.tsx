@@ -10,6 +10,8 @@ import { ServiceCard } from '@/components/ServiceCard';
 // Categories Configuration (Updated to match DB seeds)
 import { CATEGORIES, SUB_CATEGORIES } from '@/constants/categories';
 
+import { auth } from '@/auth';
+
 export default async function SearchPage({
     searchParams
 }: {
@@ -23,6 +25,9 @@ export default async function SearchPage({
         radius?: string;
     }
 }) {
+    const session = await auth();
+    const user = session?.user;
+
     const categoryId = searchParams.category;
     const subcategory = searchParams.subcategory;
     const query = searchParams.q;
@@ -120,10 +125,17 @@ export default async function SearchPage({
                         <CheckCircle2 className="w-5 h-5" />
                         Мои заказы
                     </Link>
-                    <Link href="/become-provider" className="flex items-center gap-3 hover:text-black transition-colors">
-                        <div className="w-5 h-5 border-2 border-current rounded-full flex items-center justify-center text-[10px] font-bold">🛠</div>
-                        Стать исполнителем
-                    </Link>
+                    {user?.role === 'PROVIDER' ? (
+                        <Link href="/provider/profile" className="flex items-center gap-3 hover:text-black transition-colors">
+                            <div className="w-5 h-5 border-2 border-current rounded-full flex items-center justify-center text-[10px] font-bold">🛠</div>
+                            Кабинет исполнителя
+                        </Link>
+                    ) : (
+                        <Link href="/become-provider" className="flex items-center gap-3 hover:text-black transition-colors">
+                            <div className="w-5 h-5 border-2 border-current rounded-full flex items-center justify-center text-[10px] font-bold">🛠</div>
+                            Стать исполнителем
+                        </Link>
+                    )}
                 </nav>
             </aside>
 

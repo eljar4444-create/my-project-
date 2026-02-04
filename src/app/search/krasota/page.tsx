@@ -5,11 +5,16 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import prisma from '@/lib/prisma';
 export const dynamic = 'force-dynamic';
 
+import { auth } from '@/auth';
+
 export default async function BeautySearchPage({
     searchParams
 }: {
     searchParams: { [key: string]: string | string[] | undefined }
 }) {
+    const session = await auth();
+    const user = session?.user;
+
     // 1. Fetch "Beauty" category
     const category = await prisma.serviceCategory.findUnique({
         where: { slug: 'beauty' }
@@ -58,10 +63,17 @@ export default async function BeautySearchPage({
                         <CheckCircle2 className="w-5 h-5" />
                         Мои заказы
                     </Link>
-                    <Link href="/become-provider" className="flex items-center gap-3 hover:text-black transition-colors">
-                        <div className="w-5 h-5 border-2 border-current rounded-full flex items-center justify-center text-[10px] font-bold">🛠</div>
-                        Стать исполнителем
-                    </Link>
+                    {user?.role === 'PROVIDER' ? (
+                        <Link href="/provider/profile" className="flex items-center gap-3 hover:text-black transition-colors">
+                            <div className="w-5 h-5 border-2 border-current rounded-full flex items-center justify-center text-[10px] font-bold">🛠</div>
+                            Кабинет исполнителя
+                        </Link>
+                    ) : (
+                        <Link href="/become-provider" className="flex items-center gap-3 hover:text-black transition-colors">
+                            <div className="w-5 h-5 border-2 border-current rounded-full flex items-center justify-center text-[10px] font-bold">🛠</div>
+                            Стать исполнителем
+                        </Link>
+                    )}
                 </nav>
             </aside>
 

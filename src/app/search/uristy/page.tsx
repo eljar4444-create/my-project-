@@ -5,7 +5,11 @@ import { Search, LayoutGrid, CheckCircle2, ChevronDown, MapPin, Phone, MessageCi
 import Link from 'next/link';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
+import { useSession } from 'next-auth/react';
+
 export default function LegalServicesPage() {
+    const { data: session } = useSession();
+    const user = session?.user;
     return (
         <div className="container mx-auto px-4 max-w-7xl flex items-start gap-8 font-sans text-slate-900">
             {/* Sidebar (Left) */}
@@ -21,10 +25,17 @@ export default function LegalServicesPage() {
                         <CheckCircle2 className="w-5 h-5" />
                         Мои заказы
                     </Link>
-                    <Link href="/become-provider" className="flex items-center gap-3 hover:text-black transition-colors">
-                        <div className="w-5 h-5 border-2 border-current rounded-full flex items-center justify-center text-[10px] font-bold">🛠</div>
-                        Стать исполнителем
-                    </Link>
+                    {user?.role === 'PROVIDER' ? (
+                        <Link href="/provider/profile" className="flex items-center gap-3 hover:text-black transition-colors">
+                            <div className="w-5 h-5 border-2 border-current rounded-full flex items-center justify-center text-[10px] font-bold">🛠</div>
+                            Кабинет исполнителя
+                        </Link>
+                    ) : (
+                        <Link href="/become-provider" className="flex items-center gap-3 hover:text-black transition-colors">
+                            <div className="w-5 h-5 border-2 border-current rounded-full flex items-center justify-center text-[10px] font-bold">🛠</div>
+                            Стать исполнителем
+                        </Link>
+                    )}
                 </nav>
             </aside>
 

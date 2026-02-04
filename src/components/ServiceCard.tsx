@@ -117,12 +117,12 @@ export function ServiceCard({ service }: { service: Service }) {
                             <div className="absolute -bottom-0.5 -right-0.5 bg-green-500 w-3 h-3 rounded-full border-2 border-white" />
                         </div>
                         <div className="flex flex-col min-w-0">
-                            <span className="text-2xl font-bold text-gray-900 truncate">
+                            <span className="text-2xl font-bold text-gray-900 leading-none">
                                 {service.provider.name}
                             </span>
-                            <div className="flex items-center text-sm text-gray-500 gap-1 font-medium mt-0.5">
+                            <div className="flex items-center text-sm text-gray-500 gap-1 font-medium mt-1">
                                 <MapPin className="w-3.5 h-3.5 text-gray-400 shrink-0" />
-                                <span className="truncate">{service.city}</span>
+                                <span>{service.city}</span>
                             </div>
                         </div>
                     </div>

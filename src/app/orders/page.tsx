@@ -48,32 +48,8 @@ export default async function OrdersPage() {
     }
 
     return (
-        <div className="container mx-auto px-4 max-w-7xl flex items-start gap-8 font-sans text-slate-900">
-            {/* Sidebar (Left) - Reusing same sidebar structure */}
-            {/* Sidebar (Left) - Reusing same sidebar structure */}
-            <aside className="w-64 hidden lg:flex flex-col py-8 shrink-0">
-
-                <nav className="space-y-6 text-gray-500 font-medium text-[15px] shrink-0">
-                    <Link href="/search" className="flex items-center gap-3 hover:text-black transition-colors px-4 py-2">
-                        <LayoutGrid className="w-5 h-5" />
-                        Найти специалиста
-                    </Link>
-                    <Link href="/my-orders" className="flex items-center gap-3 hover:text-black transition-colors px-4 py-2">
-                        <CheckCircle2 className="w-5 h-5" />
-                        Мои заказы
-                    </Link>
-                    <Link href="/orders" className="flex items-center gap-3 text-black font-bold bg-gray-50 -mx-4 px-4 py-2 rounded-lg transition-colors">
-                        <Search className="w-5 h-5" />
-                        Поиск заказов
-                    </Link>
-                    <Link href="/become-provider" className="flex items-center gap-3 hover:text-black transition-colors px-4 py-2">
-                        <div className="w-5 h-5 border-2 border-current rounded-full flex items-center justify-center text-[10px] font-bold">🛠</div>
-                        Стать исполнителем
-                    </Link>
-                </nav>
-            </aside>
-
-            <main className="flex-1 py-8">
+        <div className="container mx-auto px-4 max-w-7xl font-sans text-slate-900">
+            <main className="w-full py-8">
 
                 <div className="p-8 max-w-5xl mx-auto">
                     <div className="flex justify-between items-center mb-8">

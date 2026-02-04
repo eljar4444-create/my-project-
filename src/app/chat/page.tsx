@@ -42,13 +42,16 @@ export default function ChatPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [isMessagesLoading, setIsMessagesLoading] = useState(false);
     const [newMessage, setNewMessage] = useState('');
-    const messagesEndRef = useRef<HTMLDivElement>(null);
+    const messagesContainerRef = useRef<HTMLDivElement>(null);
 
     const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        if (messagesContainerRef.current) {
+            messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+        }
     };
 
     useEffect(() => {
+        // Poll for new conversations
         fetchConversations();
         const interval = setInterval(fetchConversations, 15000);
         return () => clearInterval(interval);
@@ -56,7 +59,8 @@ export default function ChatPage() {
 
     useEffect(() => {
         if (messages.length > 0) {
-            scrollToBottom();
+            // Use timeout to ensure DOM is updated
+            setTimeout(scrollToBottom, 100);
         }
     }, [messages]);
 
@@ -212,7 +216,10 @@ export default function ChatPage() {
                             </div>
 
                             {/* Messages */}
-                            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50/30">
+                            <div
+                                ref={messagesContainerRef}
+                                className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50/30"
+                            >
                                 {messages.map((msg, idx) => {
                                     const isMe = msg.senderId === session.user.id;
                                     return (
@@ -231,7 +238,6 @@ export default function ChatPage() {
                                         </div>
                                     );
                                 })}
-                                <div ref={messagesEndRef} />
                             </div>
 
                             {/* Input */}

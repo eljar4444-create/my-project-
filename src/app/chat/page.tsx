@@ -145,8 +145,8 @@ export default function ChatPage() {
     }
 
     return (
-        <div className="container mx-auto px-4 py-8 h-[calc(100vh-100px)] max-w-[1600px] mt-20">
-            <div className="grid grid-cols-1 md:grid-cols-5 h-full gap-6 bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
+        <div className="container mx-auto px-4 py-8 h-[calc(100vh-100px)] max-w-[1200px] mt-20">
+            <div className="grid grid-cols-1 md:grid-cols-4 h-full gap-6 bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
                 {/* Sidebar (1 column) */}
                 <div className="col-span-1 border-r border-gray-100 flex flex-col h-full bg-gray-50/50 min-w-[300px]">
                     <div className="p-4 border-b border-gray-100 bg-white">
@@ -279,8 +279,8 @@ export default function ChatPage() {
                     )}
                 </div>
 
-                {/* Service Info Panel (2 columns) */}
-                <div className="col-span-1 hidden md:flex flex-col h-full bg-gray-50/30 p-6 overflow-y-auto md:col-span-2">
+                {/* Service Info Panel (1 column) */}
+                <div className="col-span-1 hidden md:flex flex-col h-full bg-gray-50/30 p-6 overflow-y-auto">
                     {selectedChatId && currentService ? (
                         <div className="space-y-6">
                             <h3 className="font-bold text-gray-900 text-lg">Информация об услуге</h3>

@@ -221,6 +221,7 @@ export default async function SearchPage({
                                                 image: service.providerProfile.user.image
                                             }
                                         }}
+                                        variant="horizontal"
                                     />
                                 ))}
                                 {services.length === 0 && (

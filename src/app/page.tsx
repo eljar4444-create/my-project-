@@ -69,6 +69,7 @@ export default async function Home() {
                                             image: service.providerProfile.user.image
                                         }
                                     }}
+                                    variant="vertical"
                                 />
                             ))}
                         </div>

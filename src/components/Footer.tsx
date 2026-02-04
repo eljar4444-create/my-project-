@@ -8,7 +8,7 @@ export function Footer() {
                     Impressum
                 </Link>
                 <span className="hidden md:inline text-gray-300">|</span>
-                <Link href="/impressum" className="hover:text-gray-900 transition-colors">
+                <Link href="/agb" className="hover:text-gray-900 transition-colors">
                     AGB
                 </Link>
                 <span className="hidden md:inline text-gray-300">|</span>

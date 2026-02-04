@@ -5,26 +5,37 @@ import { CATEGORIES, SUB_CATEGORIES } from '@/constants/categories';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 import { ChevronDown } from 'lucide-react';
 
-const CATEGORY_STYLES = {
+const CATEGORY_STYLES: Record<string, string> = {
     cleaning: 'bg-blue-50 text-blue-600',
     repair: 'bg-orange-50 text-orange-600',
     beauty: 'bg-pink-50 text-pink-600',
     cargo: 'bg-green-50 text-green-600',
     auto: 'bg-cyan-50 text-cyan-600',
     plumbing: 'bg-indigo-50 text-indigo-600',
+    courier: 'bg-yellow-50 text-yellow-600',
+    electrician: 'bg-amber-50 text-amber-600',
+    'computer-help': 'bg-slate-50 text-slate-600',
+    tutors: 'bg-emerald-50 text-emerald-600',
+    'appliance-repair': 'bg-zinc-50 text-zinc-600',
+    household: 'bg-lime-50 text-lime-600',
+    'photo-video': 'bg-purple-50 text-purple-600',
+    legal: 'bg-red-50 text-red-600',
+    events: 'bg-rose-50 text-rose-600',
+    design: 'bg-fuchsia-50 text-fuchsia-600',
+    development: 'bg-violet-50 text-violet-600',
     all: 'bg-gray-50 text-gray-600'
 };
 
 export function HomeCategories() {
-    // Only these categories are shown on home page based on previous hardcoded list
-    const HOME_CATS = ['cleaning', 'repair', 'beauty', 'cargo', 'auto', 'all'];
+    // Combine all categories + 'All' button
+    const ALL_CATS = [...CATEGORIES.map(c => c.id), 'all'];
 
     return (
         <section className="container mx-auto px-4 py-12">
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                {HOME_CATS.map((catId, idx) => {
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                {ALL_CATS.map((catId) => {
                     const cat = CATEGORIES.find(c => c.id === catId) || { id: 'all', name: 'Все', icon: '🔍' };
-                    const colorClass = CATEGORY_STYLES[catId as keyof typeof CATEGORY_STYLES] || 'bg-gray-50 text-gray-600';
+                    const colorClass = CATEGORY_STYLES[catId] || 'bg-gray-50 text-gray-600';
                     const hasSub = SUB_CATEGORIES[catId] && SUB_CATEGORIES[catId].length > 0;
 
                     if (catId === 'all') {

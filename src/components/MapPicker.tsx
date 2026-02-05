@@ -1,30 +1,64 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
-import { GoogleMap, Marker, Circle, useLoadScript } from '@react-google-maps/api';
-import { Loader2, MapPin } from 'lucide-react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
+import { Loader2 } from 'lucide-react';
+import dynamic from 'next/dynamic';
+import 'leaflet/dist/leaflet.css';
+import 'leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css';
+import 'leaflet-defaulticon-compatibility';
 
-const libraries: ("places")[] = ["places"];
+// Dynamically import React-Leaflet components to avoid SSR issues with Leaflet
+const MapContainer = dynamic(
+    () => import('react-leaflet').then((mod) => mod.MapContainer),
+    { ssr: false, loading: () => <MapLoading /> }
+);
+const TileLayer = dynamic(
+    () => import('react-leaflet').then((mod) => mod.TileLayer),
+    { ssr: false }
+);
+const Marker = dynamic(
+    () => import('react-leaflet').then((mod) => mod.Marker),
+    { ssr: false }
+);
+const Circle = dynamic(
+    () => import('react-leaflet').then((mod) => mod.Circle),
+    { ssr: false }
+);
+const useMapEvents = dynamic(
+    () => import('react-leaflet').then((mod) => mod.useMapEvents),
+    { ssr: false }
+);
+const useMap = dynamic(
+    () => import('react-leaflet').then((mod) => mod.useMap),
+    { ssr: false }
+);
 
-const mapContainerStyle = {
-    width: '100%',
-    height: '400px',
-    borderRadius: '12px',
-};
+function MapLoading() {
+    return (
+        <div className="w-full h-[400px] flex items-center justify-center bg-gray-50 rounded-xl">
+            <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+        </div>
+    );
+}
 
-// Default center (Berlin)
-const defaultCenter = {
-    lat: 52.5200,
-    lng: 13.4050,
-};
+// Component to handle map clicks
+function MapEvents({ onLocationSelect }: { onLocationSelect: (lat: number, lng: number) => void }) {
+    useMapEvents({
+        click(e) {
+            onLocationSelect(e.latlng.lat, e.latlng.lng);
+        },
+    });
+    return null;
+}
 
-const options = {
-    disableDefaultUI: false,
-    zoomControl: true,
-    streetViewControl: false,
-    mapTypeControl: false,
-    fullscreenControl: false,
-};
+// Component to re-center map when props change
+function ChangeView({ center }: { center: [number, number] }) {
+    const map = useMap();
+    useEffect(() => {
+        map.setView(center);
+    }, [center, map]);
+    return null;
+}
 
 interface MapPickerProps {
     onLocationSelect: (lat: number, lng: number) => void;
@@ -34,96 +68,51 @@ interface MapPickerProps {
 }
 
 export function MapPicker({ onLocationSelect, initialLat, initialLng, radius = 10 }: MapPickerProps) {
-    const { isLoaded, loadError } = useLoadScript({
-        googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '',
-        libraries,
-    });
-
-    const [marker, setMarker] = useState<{ lat: number; lng: number } | null>(null);
-    const [center, setCenter] = useState(defaultCenter);
+    const [position, setPosition] = useState<[number, number] | null>(null);
+    // Default to Berlin if no position
+    const defaultCenter: [number, number] = [52.5200, 13.4050];
 
     useEffect(() => {
         if (initialLat && initialLng) {
-            const loc = { lat: initialLat, lng: initialLng };
-            setMarker(loc);
-            setCenter(loc);
+            setPosition([initialLat, initialLng]);
         }
     }, [initialLat, initialLng]);
 
-    const onMapClick = useCallback((e: google.maps.MapMouseEvent) => {
-        if (e.latLng) {
-            const lat = e.latLng.lat();
-            const lng = e.latLng.lng();
-            setMarker({ lat, lng });
-            onLocationSelect(lat, lng);
-        }
-    }, [onLocationSelect]);
+    const handleMapClick = (lat: number, lng: number) => {
+        setPosition([lat, lng]);
+        onLocationSelect(lat, lng);
+    };
 
-
-
-    const [map, setMap] = useState<google.maps.Map | null>(null);
-
-    const onLoad = useCallback((map: google.maps.Map) => {
-        setMap(map);
-    }, []);
-
-    const onUnmount = useCallback(() => {
-        setMap(null);
-    }, []);
-
-    const [circleInstance, setCircleInstance] = useState<google.maps.Circle | null>(null);
-
-    // Manage Circle lifecycle manually to prevent ghosting
-    useEffect(() => {
-        if (!map || !center || !radius) return;
-
-        // Cleanup previous circle
-        if (circleInstance) {
-            circleInstance.setMap(null);
-        }
-
-        const newCircle = new window.google.maps.Circle({
-            map: map,
-            center: center,
-            radius: radius * 1000,
-            fillColor: "#4285F4",
-            fillOpacity: 0.2,
-            strokeColor: "#4285F4",
-            strokeOpacity: 0.8,
-            strokeWeight: 2,
-            clickable: false,
-            zIndex: 100
-        });
-
-        // Fit bounds
-        const bounds = new window.google.maps.LatLngBounds();
-        bounds.union(newCircle.getBounds()!);
-        map.fitBounds(bounds, 20);
-
-        setCircleInstance(newCircle);
-
-        return () => {
-            newCircle.setMap(null);
-        };
-    }, [map, center, radius]);
-
-
-
-    if (loadError) return <div className="text-red-500 text-sm">Error loading maps</div>;
-    if (!isLoaded) return <div className="flex justify-center p-10"><Loader2 className="animate-spin text-gray-400" /></div>;
+    const mapCenter = position || defaultCenter;
 
     return (
-        <div className="relative">
-            <GoogleMap
-                mapContainerStyle={mapContainerStyle}
-                center={center}
-                options={options}
-                onClick={onMapClick}
-                onLoad={onLoad}
-                onUnmount={onUnmount}
+        <div className="w-full h-[400px] rounded-xl overflow-hidden relative z-0">
+            <MapContainer
+                center={mapCenter}
+                zoom={13}
+                style={{ width: '100%', height: '100%' }}
+                className="z-0"
             >
-                {marker && <Marker position={marker} />}
-            </GoogleMap>
+                <TileLayer
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                />
+
+                {position && (
+                    <Marker position={position} />
+                )}
+
+                {position && radius && (
+                    <Circle
+                        center={position}
+                        pathOptions={{ fillColor: '#4285F4', fillOpacity: 0.2, color: '#4285F4' }}
+                        radius={radius * 1000}
+                    />
+                )}
+
+                <MapEvents onLocationSelect={handleMapClick} />
+                <ChangeView center={mapCenter} />
+            </MapContainer>
         </div>
     );
 }

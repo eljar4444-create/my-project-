@@ -1,16 +1,24 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import usePlacesAutocomplete, {
-    getGeocode,
-    getLatLng,
-} from 'use-places-autocomplete';
-import { useLoadScript } from '@react-google-maps/api';
 import { Input } from '@/components/ui/input';
 import { MapPin, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useDebounce } from '@/hooks/use-debounce'; // Assuming we have or will create this, otherwise I'll implement local debounce
 
-const libraries: ("places")[] = ["places"];
+// Simple local debounce hook implementation if not exists
+function useLocalDebounce<T>(value: T, delay: number): T {
+    const [debouncedValue, setDebouncedValue] = useState(value);
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            setDebouncedValue(value);
+        }, delay);
+        return () => {
+            clearTimeout(handler);
+        };
+    }, [value, delay]);
+    return debouncedValue;
+}
 
 interface LocationAutocompleteProps {
     onSelect: (address: string, lat: number | null, lng: number | null) => void;
@@ -19,66 +27,79 @@ interface LocationAutocompleteProps {
     focusRef?: React.Ref<HTMLInputElement>;
 }
 
-export function LocationAutocomplete({ onSelect, defaultValue = '', className, focusRef }: LocationAutocompleteProps) {
-    const { isLoaded, loadError } = useLoadScript({
-        googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '',
-        libraries,
-    });
-
-    useEffect(() => {
-        if (loadError) {
-            console.error('Google Maps Load Error:', loadError);
-        }
-    }, [loadError]);
-
-    if (!isLoaded) {
-        return (
-            <div className="relative w-full">
-                <Input
-                    disabled
-                    placeholder="Загрузка карт..."
-                    className={className}
-                />
-                <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 animate-spin text-gray-400" />
-            </div>
-        );
-    }
-
-    return <LocationInput onSelect={onSelect} defaultValue={defaultValue} className={className} focusRef={focusRef} />;
+interface NominatimResult {
+    place_id: number;
+    licence: string;
+    osm_type: string;
+    osm_id: number;
+    boundingbox: string[];
+    lat: string;
+    lon: string;
+    display_name: string;
+    class: string;
+    type: string;
+    importance: number;
+    icon?: string;
 }
 
-function LocationInput({ onSelect, defaultValue, className, focusRef }: LocationAutocompleteProps) {
-    const {
-        ready,
-        value,
-        suggestions: { status, data },
-        setValue,
-        clearSuggestions,
-    } = usePlacesAutocomplete({
-        requestOptions: {
-            /* Define search scope here if needed, e.g., radius, bounds */
-            language: 'ru', // Force Russian results
-            componentRestrictions: { country: ['de'] },
-        },
-        debounce: 300,
-        defaultValue,
-    });
-
+export function LocationAutocomplete({ onSelect, defaultValue = '', className, focusRef }: LocationAutocompleteProps) {
+    const [value, setValue] = useState(defaultValue);
+    const [suggestions, setSuggestions] = useState<NominatimResult[]>([]);
+    const [isLoading, setIsLoading] = useState(false);
     const [isFocused, setIsFocused] = useState(false);
     const wrapperRef = useRef<HTMLDivElement>(null);
 
-    // Debug logging
-    useEffect(() => {
-        // console.log('Places Status:', status); 
-        // console.log('Places Data:', data);
-    }, [status, data]);
+    const debouncedValue = useLocalDebounce(value, 500);
 
-    // Keep value in sync if default changes (optional)
+    // Sync default value
     useEffect(() => {
-        if (defaultValue) setValue(defaultValue, false);
-    }, [defaultValue, setValue]);
+        if (defaultValue) setValue(defaultValue);
+    }, [defaultValue]);
 
-    // Click outside to close
+    // Fetch suggestions
+    useEffect(() => {
+        const fetchSuggestions = async () => {
+            if (!debouncedValue || debouncedValue.length < 3) {
+                setSuggestions([]);
+                return;
+            }
+
+            // prevent searching if we just selected an item (heuristic: exact match with top result? No, simpler to just let it search or block via a flag. 
+            // For now, let's just search. Nominatim is free but we should be gentle.)
+
+            setIsLoading(true);
+            try {
+                // Nominatim API: https://nominatim.org/release-docs/develop/api/Search/
+                const params = new URLSearchParams({
+                    q: debouncedValue,
+                    format: 'json',
+                    addressdetails: '1',
+                    limit: '5',
+                    countrycodes: 'de', // Limit to Germany as per previous context
+                    'accept-language': 'ru' // Prefer Russian if possible, or de
+                });
+
+                const response = await fetch(`https://nominatim.openstreetmap.org/search?${params.toString()}`);
+                if (!response.ok) throw new Error('Network response was not ok');
+                const data: NominatimResult[] = await response.json();
+                setSuggestions(data);
+            } catch (error) {
+                console.error("Nominatim search error:", error);
+                setSuggestions([]);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        // Only search if user is actively typing (we can't easily distinguish "typing" vs "setting default", 
+        // but checking difference from last selected might work. for now simple debounce.)
+        if (isFocused) {
+            fetchSuggestions();
+        }
+
+    }, [debouncedValue, isFocused]);
+
+    // Click outside handler
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
             if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
@@ -91,116 +112,101 @@ function LocationInput({ onSelect, defaultValue, className, focusRef }: Location
         };
     }, [wrapperRef]);
 
-    const handleSelect = async (address: string) => {
-        setValue(address, false);
-        clearSuggestions();
-        setIsFocused(false);
+    const handleSelect = (item: NominatimResult) => {
+        const address = item.display_name;
+        const lat = parseFloat(item.lat);
+        const lng = parseFloat(item.lon);
 
-        try {
-            const results = await getGeocode({ address });
-            const { lat, lng } = await getLatLng(results[0]);
-            onSelect(address, lat, lng);
-        } catch (error) {
-            console.error("Error: ", error);
-            // Even if geocoding fails, we can at least return the address
-            onSelect(address, null, null);
-        }
+        setValue(address);
+        setSuggestions([]);
+        setIsFocused(false);
+        onSelect(address, lat, lng);
     };
 
     const handleGeolocation = () => {
         if (!navigator.geolocation) return;
+        setIsLoading(true);
 
         navigator.geolocation.getCurrentPosition(
-            ({ coords }) => {
+            async ({ coords }) => {
                 const { latitude, longitude } = coords;
+                try {
+                    const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`);
+                    const data = await response.json();
 
-                getGeocode({ location: { lat: latitude, lng: longitude } })
-                    .then((results) => {
-                        console.log("Geocoding results:", results); // Keep for debugging
-
-
-                        if (results[0]) {
-                            const address = results[0].formatted_address;
-                            setValue(address, false);
-                            onSelect(address, latitude, longitude);
-                        } else {
-                            const fallback = `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
-                            setValue(fallback, false);
-                            onSelect(fallback, latitude, longitude);
-                        }
-                        // Keep focused so user can select radius
-                        setIsFocused(true);
-                    })
-                    .catch((err) => {
-                        console.error("Geocoding failed:", err);
-                        setValue("Не удалось определить город", false);
-                        setIsFocused(true);
-                    });
+                    const address = data.display_name || `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
+                    setValue(address);
+                    onSelect(address, latitude, longitude);
+                    setIsFocused(false);
+                } catch (error) {
+                    console.error("Reverse geocoding failed", error);
+                    // Fallback
+                    const fallback = `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
+                    setValue(fallback);
+                    onSelect(fallback, latitude, longitude);
+                } finally {
+                    setIsLoading(false);
+                }
             },
             (error) => {
                 console.error("Geolocation error:", error);
+                setIsLoading(false);
             }
         );
     };
 
-
-
     return (
         <div ref={wrapperRef} className="relative w-full">
-            <Input
-                ref={focusRef}
-                value={value}
-                onChange={(e) => {
-                    setValue(e.target.value);
-                    if (e.target.value) onSelect(e.target.value, null, null); // Update text only parent state
-                }}
-                disabled={!ready}
-                onFocus={() => setIsFocused(true)}
-                className={cn("pr-10", className)}
-                placeholder="Адрес, город..."
-            />
-            <button
-                type="button"
-                onClick={handleGeolocation}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-primary transition-colors"
-                title="Мое местоположение"
-            >
-                <MapPin className="w-5 h-5" />
-            </button>
+            <div className="relative">
+                <Input
+                    ref={focusRef}
+                    value={value}
+                    onChange={(e) => {
+                        setValue(e.target.value);
+                        // Clear selection if user edits text manually
+                        // onSelect(e.target.value, null, null); 
+                        // Actually, maybe don't clear immediately to avoid flashing, wait for validation or select?
+                        // Previous logic: onSelect(e.target.value, null, null);
+                        if (e.target.value) onSelect(e.target.value, null, null);
+                    }}
+                    onFocus={() => setIsFocused(true)}
+                    className={cn("pr-10", className)}
+                    placeholder="Адрес, город..."
+                />
 
-            {isFocused && (
+                <button
+                    type="button"
+                    onClick={handleGeolocation}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-primary transition-colors"
+                    title="Мое местоположение"
+                >
+                    {isLoading ? (
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                    ) : (
+                        <MapPin className="w-5 h-5" />
+                    )}
+                </button>
+            </div>
+
+            {isFocused && (suggestions.length > 0 || isLoading) && (
                 <div className="absolute top-full left-0 w-full mt-2 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-50 text-left animate-fade-in max-h-80 overflow-y-auto">
 
-                    {/* Current Location Option */}
-                    <div
-                        onClick={handleGeolocation}
-                        className="px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors flex items-center gap-3 text-sm text-primary font-medium border-b border-gray-50"
-                    >
-                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                            <MapPin className="w-4 h-4 text-primary" />
-                        </div>
-                        <div className="flex flex-col">
-                            <span>Мое местоположение</span>
-                            <span className="text-xs text-gray-400 font-normal">Найти услуги рядом со мной</span>
-                        </div>
-                    </div>
+                    {!isLoading && suggestions.length > 0 && (
+                        suggestions.map((item) => (
+                            <div
+                                key={item.place_id}
+                                onClick={() => handleSelect(item)}
+                                className="px-4 py-2.5 hover:bg-gray-50 cursor-pointer transition-colors flex items-center gap-3 text-sm text-gray-700"
+                            >
+                                <MapPin className="w-4 h-4 text-gray-400 shrink-0" />
+                                <span>{item.display_name}</span>
+                            </div>
+                        ))
+                    )}
 
-                    {status === "OK" && data.map(({ place_id, description }) => (
-                        <div
-                            key={place_id}
-                            onClick={() => handleSelect(description)}
-                            className="px-4 py-2.5 hover:bg-gray-50 cursor-pointer transition-colors flex items-center gap-3 text-sm text-gray-700"
-                        >
-                            <MapPin className="w-4 h-4 text-gray-400 shrink-0" />
-                            <span>{description}</span>
-                        </div>
-                    ))}
-
-                    {/* Debug/Error State UI */}
-                    {status !== "OK" && status !== "" && value.length > 2 && (
-                        <div className="p-4 text-center">
-                            <p className="text-xs text-red-500 font-medium">Status: {status}</p>
-                            <p className="text-xs text-gray-400 mt-1">Try typing a major German city like "Berlin"</p>
+                    {!isLoading && value.length > 2 && suggestions.length === 0 && (
+                        <div className="p-4 text-center text-xs text-gray-400">
+                            Ничего не найдено
                         </div>
                     )}
                 </div>

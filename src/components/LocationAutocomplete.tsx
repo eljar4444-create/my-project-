@@ -39,6 +39,27 @@ export function LocationAutocomplete({ onSelect, defaultValue = '', className, f
 
     const debouncedValue = useDebounce(value, 300);
 
+    // Major cities manual boost (to fix Nominatim ranking issues for short prefixes)
+    const MAJOR_CITIES = [
+        {
+            names: ["berlin", "берлин"],
+            triggers: ["ber", "бер"],
+            data: {
+                place_id: 133170383,
+                licence: "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+                osm_type: "relation",
+                osm_id: 62422,
+                boundingbox: ["52.3382448", "52.6755087", "13.0883450", "13.7611609"],
+                lat: "52.5173885",
+                lon: "13.3951309",
+                display_name: "Берлин, Германия",
+                class: "boundary",
+                type: "administrative",
+                importance: 0.8522196536088086
+            } as NominatimResult
+        }
+    ];
+
     // Sync default value
     useEffect(() => {
         if (defaultValue) setValue(defaultValue);
@@ -69,11 +90,43 @@ export function LocationAutocomplete({ onSelect, defaultValue = '', className, f
 
                 const response = await fetch(`https://nominatim.openstreetmap.org/search?${params.toString()}`);
                 if (!response.ok) throw new Error('Network response was not ok');
-                const data: NominatimResult[] = await response.json();
+                let data: NominatimResult[] = await response.json();
+
+                // Manual Boost Logic
+                const queryLower = debouncedValue.toLowerCase();
+
+                for (const city of MAJOR_CITIES) {
+                    // Check if query matches a trigger (start of city name)
+                    const isTrigger = city.triggers.some(t => queryLower.startsWith(t));
+
+                    if (isTrigger) {
+                        // Check if city is NOT already in top results (fuzzy check by ID or name)
+                        const exists = data.some(d =>
+                            d.osm_id === city.data.osm_id ||
+                            city.names.some(n => d.display_name.toLowerCase().includes(n))
+                        );
+
+                        if (!exists) {
+                            // Prepend to results
+                            data = [city.data, ...data];
+                        }
+                    }
+                }
+
                 setSuggestions(data);
             } catch (error) {
                 console.error("Nominatim search error:", error);
-                setSuggestions([]);
+
+                // Fallback: If network fails but we match a major city, show it
+                const queryLower = debouncedValue.toLowerCase();
+                const fallbackSuggestions: NominatimResult[] = [];
+                for (const city of MAJOR_CITIES) {
+                    if (city.triggers.some(t => queryLower.startsWith(t))) {
+                        fallbackSuggestions.push(city.data);
+                    }
+                }
+                setSuggestions(fallbackSuggestions);
+
             } finally {
                 setIsLoading(false);
             }

@@ -15,6 +15,8 @@ interface LocationAutocompleteProps {
     focusRef?: React.Ref<HTMLInputElement>;
 }
 
+import { GERMAN_CITIES } from '@/constants/germanCities';
+
 interface NominatimResult {
     place_id: number;
     licence: string;
@@ -28,6 +30,7 @@ interface NominatimResult {
     type: string;
     importance: number;
     icon?: string;
+    addresstype?: string;
 }
 
 export function LocationAutocomplete({ onSelect, defaultValue = '', className, focusRef }: LocationAutocompleteProps) {
@@ -39,136 +42,8 @@ export function LocationAutocomplete({ onSelect, defaultValue = '', className, f
 
     const debouncedValue = useDebounce(value, 300);
 
-    // Major cities manual boost (to fix Nominatim ranking issues for short prefixes)
-    // Generated via script for top ~20 German cities
-    const MAJOR_CITIES: { names: string[], triggers: string[], data: NominatimResult }[] = [
-        {
-            names: ["berlin", "berlin", "берлин"],
-            triggers: ["b", "б", "be", "бе"],
-            data: {
-                place_id: 134131805, osm_id: 62422, osm_type: "relation", lat: "52.5173885", lon: "13.3951309",
-                display_name: "Берлин, Германия", class: "boundary", type: "administrative", importance: 0.8522196536088086,
-                licence: "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright", boundingbox: []
-            } as unknown as NominatimResult
-        },
-        {
-            names: ["hamburg", "hamburg", "гамбург"],
-            triggers: ["h", "г", "ha", "га"],
-            data: {
-                place_id: 129789555, osm_id: 62782, osm_type: "relation", lat: "53.5503410", lon: "10.0006540",
-                display_name: "Гамбург, Германия", class: "boundary", type: "administrative", importance: 0.7877290162608149,
-                licence: "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright", boundingbox: []
-            } as unknown as NominatimResult
-        },
-        {
-            names: ["münchen", "munchen", "мюнхен"],
-            triggers: ["m", "м", "mü", "мю", "mu"],
-            data: {
-                place_id: 117581410, osm_id: 62428, osm_type: "relation", lat: "48.1371079", lon: "11.5753822",
-                display_name: "Мюнхен, Бавария, Германия", class: "boundary", type: "administrative", importance: 0.8105981661589455,
-                licence: "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright", boundingbox: []
-            } as unknown as NominatimResult
-        },
-        {
-            names: ["köln", "koln", "кёльн"],
-            triggers: ["k", "к", "kö", "кё", "ko"],
-            data: {
-                place_id: 106066015, osm_id: 62578, osm_type: "relation", lat: "50.9383610", lon: "6.9599740",
-                display_name: "Кёльн, Северный Рейн — Вестфалия, Германия", class: "boundary", type: "administrative", importance: 0.7583028574734825,
-                licence: "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright", boundingbox: []
-            } as unknown as NominatimResult
-        },
-        {
-            names: ["frankfurt am main", "frankfurt am main", "франкфурт-на-майне"],
-            triggers: ["f", "ф", "fr", "фр"],
-            data: {
-                place_id: 127334826, osm_id: 62400, osm_type: "relation", lat: "50.1106444", lon: "8.6820917",
-                display_name: "Франкфурт-на-Майне, Гессен, Германия", class: "boundary", type: "administrative", importance: 0.7473970382925892,
-                licence: "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright", boundingbox: []
-            } as unknown as NominatimResult
-        },
-        {
-            names: ["stuttgart", "stuttgart", "штутгарт"],
-            triggers: ["s", "ш", "st", "шт"],
-            data: {
-                place_id: 112463238, osm_id: 2793104, osm_type: "relation", lat: "48.7784485", lon: "9.1800132",
-                display_name: "Штутгарт, Баден-Вюртемберг, Германия", class: "boundary", type: "administrative", importance: 0.7482923125603024,
-                licence: "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright", boundingbox: []
-            } as unknown as NominatimResult
-        },
-        {
-            names: ["düsseldorf", "dusseldorf", "дюссельдорф"],
-            triggers: ["d", "д", "dü", "дю", "du"],
-            data: {
-                place_id: 102124007, osm_id: 62539, osm_type: "relation", lat: "51.2254018", lon: "6.7763137",
-                display_name: "Дюссельдорф, Северный Рейн — Вестфалия, Германия", class: "boundary", type: "administrative", importance: 0.7310605525031979,
-                licence: "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright", boundingbox: []
-            } as unknown as NominatimResult
-        },
-        {
-            names: ["dortmund", "dortmund", "дортмунд"],
-            triggers: ["d", "д", "do", "до"],
-            data: {
-                place_id: 103955318, osm_id: 1829065, osm_type: "relation", lat: "51.5142273", lon: "7.4652789",
-                display_name: "Дортмунд, Северный Рейн — Вестфалия, Германия", class: "boundary", type: "administrative", importance: 0.6915985025910664,
-                licence: "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright", boundingbox: []
-            } as unknown as NominatimResult
-        },
-        {
-            names: ["essen", "essen", "эссен"],
-            triggers: ["e", "э", "es", "эс"],
-            data: {
-                place_id: 129798031, osm_id: 62713, osm_type: "relation", lat: "51.4582235", lon: "7.0158171",
-                display_name: "Эссен, Северный Рейн — Вестфалия, Германия", class: "boundary", type: "administrative", importance: 0.7490212042129525,
-                licence: "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright", boundingbox: []
-            } as unknown as NominatimResult
-        },
-        {
-            names: ["leipzig", "leipzig", "лейпциг"],
-            triggers: ["l", "л", "le", "ле"],
-            data: {
-                place_id: 130193233, osm_id: 62649, osm_type: "relation", lat: "51.3406321", lon: "12.3747329",
-                display_name: "Лейпциг, Саксония, Германия", class: "boundary", type: "administrative", importance: 0.7139199216773322,
-                licence: "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright", boundingbox: []
-            } as unknown as NominatimResult
-        },
-        {
-            names: ["bremen", "bremen", "бремен"],
-            triggers: ["b", "б", "br", "бр"],
-            data: {
-                place_id: 133221971, osm_id: 62718, osm_type: "relation", lat: "53.0758196", lon: "8.8071646",
-                display_name: "Бремен, Германия", class: "boundary", type: "administrative", importance: 0.7127197721039941,
-                licence: "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright", boundingbox: []
-            } as unknown as NominatimResult
-        },
-        {
-            names: ["dresden", "dresden", "дрезден"],
-            triggers: ["d", "д", "dr", "др"],
-            data: {
-                place_id: 104278453, osm_id: 191645, osm_type: "relation", lat: "51.0493286", lon: "13.7383200",
-                display_name: "Дрезден, Саксония, Германия", class: "boundary", type: "administrative", importance: 0.70994508906933,
-                licence: "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright", boundingbox: []
-            } as unknown as NominatimResult
-        },
-        {
-            names: ["hannover", "hannover", "ганновер"],
-            triggers: ["h", "г", "ha", "га"],
-            data: {
-                place_id: 133469904, osm_id: 62723, osm_type: "relation", lat: "52.3744779", lon: "9.7385532",
-                display_name: "Ганновер, Нижняя Саксония, Германия", class: "boundary", type: "administrative", importance: 0.7389148464627151,
-                licence: "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright", boundingbox: []
-            } as unknown as NominatimResult
-        },
-        {
-            names: ["nürnberg", "nurnberg", "нюрнберг"],
-            triggers: ["n", "н", "nü", "ню", "nu"],
-            data: {
-                place_id: 134105139, osm_id: 62780, osm_type: "relation", lat: "49.4538720", lon: "11.0772980",
-                display_name: "Нюрнберг, Бавария, Германия", class: "boundary", type: "administrative", importance: 0.7303362157774903,
-                licence: "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright", boundingbox: []
-            } as unknown as NominatimResult
-        }
-    ];
+    // Major cities manual boost (Generated via script for top ~600 German cities > 20k pop)
+    const MAJOR_CITIES = GERMAN_CITIES as unknown as { names: string[], triggers: string[], data: NominatimResult }[];
 
     // Sync default value
     useEffect(() => {

@@ -41,10 +41,12 @@ function MapLoading() {
     );
 }
 
+import { LeafletMouseEvent } from 'leaflet';
+
 // Component to handle map clicks
 function MapEvents({ onLocationSelect }: { onLocationSelect: (lat: number, lng: number) => void }) {
     useMapEvents({
-        click(e) {
+        click(e: LeafletMouseEvent) {
             onLocationSelect(e.latlng.lat, e.latlng.lng);
         },
     });

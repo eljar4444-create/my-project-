@@ -7,18 +7,6 @@ import { cn } from '@/lib/utils';
 import { useDebounce } from '@/hooks/use-debounce'; // Assuming we have or will create this, otherwise I'll implement local debounce
 
 // Simple local debounce hook implementation if not exists
-function useLocalDebounce<T>(value: T, delay: number): T {
-    const [debouncedValue, setDebouncedValue] = useState(value);
-    useEffect(() => {
-        const handler = setTimeout(() => {
-            setDebouncedValue(value);
-        }, delay);
-        return () => {
-            clearTimeout(handler);
-        };
-    }, [value, delay]);
-    return debouncedValue;
-}
 
 interface LocationAutocompleteProps {
     onSelect: (address: string, lat: number | null, lng: number | null) => void;
@@ -49,7 +37,7 @@ export function LocationAutocomplete({ onSelect, defaultValue = '', className, f
     const [isFocused, setIsFocused] = useState(false);
     const wrapperRef = useRef<HTMLDivElement>(null);
 
-    const debouncedValue = useLocalDebounce(value, 500);
+    const debouncedValue = useDebounce(value, 500);
 
     // Sync default value
     useEffect(() => {

@@ -37,7 +37,7 @@ export function LocationAutocomplete({ onSelect, defaultValue = '', className, f
     const [isFocused, setIsFocused] = useState(false);
     const wrapperRef = useRef<HTMLDivElement>(null);
 
-    const debouncedValue = useDebounce(value, 500);
+    const debouncedValue = useDebounce(value, 300);
 
     // Sync default value
     useEffect(() => {
@@ -47,7 +47,7 @@ export function LocationAutocomplete({ onSelect, defaultValue = '', className, f
     // Fetch suggestions
     useEffect(() => {
         const fetchSuggestions = async () => {
-            if (!debouncedValue || debouncedValue.length < 3) {
+            if (!debouncedValue || debouncedValue.length < 2) {
                 setSuggestions([]);
                 return;
             }

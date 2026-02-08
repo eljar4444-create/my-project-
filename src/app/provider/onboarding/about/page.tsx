@@ -103,7 +103,7 @@ export default function ProviderAboutPage() {
                             </div>
                         </div>
                         <p className="text-sm text-gray-500 font-medium">
-                            {imageUrl ? 'Нажмите, чтобы изменить фото' : 'Нажмите, чтобы загрузить фото'}
+                            {imageUrl ? 'Нажмите, чтобы изменить фото' : 'Нажмите, чтобы загрузить фото (необязательно)'}
                         </p>
                     </div>
 

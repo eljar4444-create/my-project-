@@ -5,7 +5,7 @@ import { z } from "zod";
 
 const schema = z.object({
     bio: z.string().min(10, "Расскажите о себе немного подробнее"),
-    imageUrl: z.string().optional(),
+    imageUrl: z.string().nullish(),
 });
 
 export async function POST(req: Request) {

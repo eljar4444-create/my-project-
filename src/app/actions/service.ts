@@ -101,7 +101,7 @@ export async function createService(prevState: any, formData: FormData) {
 
         revalidatePath('/provider/profile');
         revalidatePath('/admin/moderation');
-        redirect('/provider/profile');
+        redirect('/provider/services/success');
 
     } catch (e: any) {
         if (e.message === 'NEXT_REDIRECT' || e.digest?.includes('NEXT_REDIRECT')) throw e;

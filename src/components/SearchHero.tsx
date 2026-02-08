@@ -160,7 +160,7 @@ export function SearchHero({ categories = [], user }: SearchHeroProps) {
     };
 
     return (
-        <section className="relative min-h-[calc(100vh-5rem)] flex items-start justify-center pt-44 overflow-hidden">
+        <section className="relative min-h-[calc(100vh-5rem)] flex items-start justify-center pt-60 overflow-hidden">
             {/* Background Image with Overlay */}
             <div className="absolute inset-0 z-0">
                 <div className="absolute inset-0 bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900" />
@@ -209,7 +209,7 @@ export function SearchHero({ categories = [], user }: SearchHeroProps) {
 
                                 {/* CASE 1: Default View (Cascading Menu) */}
                                 {!serviceQuery.trim() ? (
-                                    <div className="flex max-h-[30vh] md:max-h-[400px]">
+                                    <div className="flex max-h-[35vh] md:max-h-[400px]">
                                         {/* Left Col: Categories */}
                                         <div className="w-1/2 overflow-y-auto border-r border-gray-100 bg-gray-50/50">
                                             {categories.map((cat) => (
@@ -273,7 +273,7 @@ export function SearchHero({ categories = [], user }: SearchHeroProps) {
                                     </div>
                                 ) : (
                                     /* CASE 2: Search Results (Flat List) */
-                                    <div className="max-h-[30vh] md:max-h-80 overflow-y-auto">
+                                    <div className="max-h-[35vh] md:max-h-80 overflow-y-auto">
                                         {filteredItems.length > 0 ? (
                                             filteredItems.map((item) => (
                                                 <div

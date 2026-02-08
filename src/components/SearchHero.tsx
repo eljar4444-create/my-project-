@@ -311,7 +311,7 @@ export function SearchHero({ categories = [], user }: SearchHeroProps) {
                             Где
                         </div>
                         {/* 
-                            Google Maps Autocomplete
+                            Location Autocomplete (OSM)
                         */}
                         <LocationAutocomplete
                             focusRef={locationInputRef}

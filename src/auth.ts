@@ -12,18 +12,23 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     session: { strategy: "jwt" },
     events: {
         async createUser({ user }) {
-            const cookieStore = cookies()
-            const role = cookieStore.get("new-user-role")?.value
+            try {
+                const cookieStore = cookies()
+                const role = cookieStore.get("new-user-role")?.value
 
-            if (role === "PROVIDER") {
-                await prisma.user.update({
-                    where: { id: user.id! },
-                    data: { role: "PROVIDER" },
-                })
+                if (role === "PROVIDER") {
+                    await prisma.user.update({
+                        where: { id: user.id! },
+                        data: { role: "PROVIDER" },
+                    })
 
-                await prisma.providerProfile.create({
-                    data: { userId: user.id! }
-                })
+                    await prisma.providerProfile.create({
+                        data: { userId: user.id! }
+                    })
+                }
+            } catch (error) {
+                console.error("Error in createUser event:", error)
+                // Do not throw, so the user session is still created
             }
         },
     },

@@ -4,11 +4,25 @@ import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import axios from 'axios';
 
+interface Chat {
+    id: string;
+    serviceTitle: string;
+    interlocutor?: {
+        name: string;
+    };
+}
+
+interface Message {
+    id: string;
+    content: string;
+    senderId: string;
+}
+
 export default function ChatPageSimple() {
     const { data: session } = useSession();
-    const [chats, setChats] = useState([]);
-    const [selectedId, setSelectedId] = useState(null);
-    const [messages, setMessages] = useState([]);
+    const [chats, setChats] = useState<Chat[]>([]);
+    const [selectedId, setSelectedId] = useState<string | null>(null);
+    const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState('');
 
     useEffect(() => {
@@ -31,8 +45,9 @@ export default function ChatPageSimple() {
             setInput('');
             const res = await axios.get(`/api/chat/${selectedId}`);
             setMessages(res.data.messages || []);
-        } catch (err) {
-            alert('Error: ' + (err.response?.data?.details || err.message));
+        } catch (err: unknown) {
+            const error = err as { response?: { data?: { details?: string } }; message?: string };
+            alert('Error: ' + (error.response?.data?.details || error.message || 'Unknown error'));
         }
     };
 

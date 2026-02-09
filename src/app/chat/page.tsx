@@ -303,7 +303,7 @@ export default function ChatPage() {
                             </div>
 
                             {/* Input */}
-                            <div className="p-3 md:p-4 border-t border-gray-100 bg-white relative z-20 flex-shrink-0">
+                            <div className="p-3 md:p-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] border-t border-gray-100 bg-white relative z-20 flex-shrink-0">
                                 <form onSubmit={handleSendMessage} className="flex gap-2 items-center">
                                     <input
                                         type="text"

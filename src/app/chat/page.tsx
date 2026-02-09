@@ -46,8 +46,6 @@ export default function ChatPage() {
 
     const messagesContainerRef = useRef<HTMLDivElement>(null);
 
-    console.log('🎯 ChatPage render:', { selectedChatId, messagesCount: messages.length, sessionId: session?.user?.id });
-
     const scrollToBottom = () => {
         if (messagesContainerRef.current) {
             messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
@@ -69,7 +67,6 @@ export default function ChatPage() {
     }, [messages]);
 
     useEffect(() => {
-        console.log('🔄 selectedChatId changed:', selectedChatId);
         if (selectedChatId) {
             fetchMessages(selectedChatId);
             // Poll for new messages every 10 seconds (simple realtime)
@@ -93,15 +90,13 @@ export default function ChatPage() {
         // don't set loading on poll, only on first load
         // setIsMessagesLoading(true); 
         try {
-            console.log('🔍 Fetching messages for chatId:', chatId);
             const res = await axios.get(`/api/chat/${chatId}`);
-            console.log('📨 Messages response:', res.data);
             setMessages(res.data.messages || []);
             if (res.data.service) {
                 setCurrentService(res.data.service);
             }
         } catch (error) {
-            console.error('❌ Error fetching messages', error);
+            console.error('Error fetching messages', error);
         } finally {
             setIsMessagesLoading(false);
         }
@@ -243,13 +238,6 @@ export default function ChatPage() {
                                         {conversations.find(c => c.id === selectedChatId)?.serviceTitle}
                                     </span>
                                 )}
-                            </div>
-
-                            {/* DEBUG PANEL */}
-                            <div className="p-2 bg-yellow-100 border-b border-yellow-300 text-xs">
-                                <div>Selected: {selectedChatId}</div>
-                                <div>Messages: {messages.length}</div>
-                                <div>Session: {session?.user?.id}</div>
                             </div>
 
                             {/* Messages */}

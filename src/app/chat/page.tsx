@@ -46,6 +46,8 @@ export default function ChatPage() {
 
     const messagesContainerRef = useRef<HTMLDivElement>(null);
 
+    console.log('🎯 ChatPage render:', { selectedChatId, messagesCount: messages.length, sessionId: session?.user?.id });
+
     const scrollToBottom = () => {
         if (messagesContainerRef.current) {
             messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
@@ -67,6 +69,7 @@ export default function ChatPage() {
     }, [messages]);
 
     useEffect(() => {
+        console.log('🔄 selectedChatId changed:', selectedChatId);
         if (selectedChatId) {
             fetchMessages(selectedChatId);
             // Poll for new messages every 10 seconds (simple realtime)

@@ -105,7 +105,11 @@ export async function POST(req: NextRequest, { params }: { params: { requestId: 
         });
 
         return NextResponse.json({ message });
-    } catch (error) {
-        return NextResponse.json({ error: 'Failed to send message' }, { status: 500 });
+    } catch (error: any) {
+        console.error('Error sending message:', error);
+        return NextResponse.json({
+            error: 'Failed to send message',
+            details: error.message
+        }, { status: 500 });
     }
 }

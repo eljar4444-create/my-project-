@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
-import toast from 'react-hot-toast';
 
 interface Conversation {
     id: string;
@@ -133,7 +132,6 @@ export default function ChatPage() {
             console.error('Error sending message', error);
             const errorMessage = `Ошибка: ${error.response?.data?.details || error.message || 'Неизвестно'}`;
             alert(errorMessage); // Native alert to ensure visibility
-            toast.error(errorMessage);
 
             // Remove the optimistic message on error
             setMessages(prev => prev.filter(m => m.id !== optimisiticMessage.id));

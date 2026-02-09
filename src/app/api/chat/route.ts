@@ -17,14 +17,21 @@ export async function GET(req: NextRequest) {
 
         if (user.role === 'PROVIDER') {
             const providerProfile = await prisma.providerProfile.findUnique({
-                where: { userId: user.id } // Use userId for lookup
+                where: { userId: user.id }
             });
 
-            if (!providerProfile) {
-                return NextResponse.json({ requests: [] });
+            if (providerProfile) {
+                // Fetch where user is Client OR Provider
+                whereCondition = {
+                    OR: [
+                        { clientId: user.id },
+                        { providerProfileId: providerProfile.id }
+                    ]
+                };
+            } else {
+                // Fallback if profile missing (shouldn't happen for valid providers)
+                whereCondition = { clientId: user.id };
             }
-
-            whereCondition = { providerProfileId: providerProfile.id };
         } else {
             whereCondition = { clientId: user.id };
         }
@@ -33,11 +40,11 @@ export async function GET(req: NextRequest) {
             where: whereCondition,
             include: {
                 client: {
-                    select: { name: true, image: true, email: true }
+                    select: { id: true, name: true, image: true, email: true }
                 },
                 providerProfile: {
                     include: {
-                        user: { select: { name: true, image: true, email: true } }
+                        user: { select: { id: true, name: true, image: true, email: true } }
                     }
                 },
                 service: {
@@ -64,24 +71,31 @@ export async function GET(req: NextRequest) {
         });
 
         // Format for easy frontend consumption
-        const formattedRequests = requests.map((req: any) => ({
-            id: req.id,
-            serviceTitle: req.service.title,
-            updatedAt: req.updatedAt,
-            lastMessage: req.messages[0]?.content || req.message, // Fallback to initial message
-            unreadCount: req._count.messages,
-            interlocutor: user.role === 'PROVIDER'
+        const formattedRequests = requests.map((req: any) => {
+            // Determine who the "other" person is
+            const isMeClient = req.clientId === user.id;
+
+            const interlocutor = isMeClient
                 ? {
-                    name: req.client.name || req.client.email,
-                    image: req.client.image,
-                    email: req.client.email
-                }
-                : {
                     name: req.providerProfile.user.name,
                     image: req.providerProfile.user.image,
                     email: req.providerProfile.user.email
                 }
-        }));
+                : {
+                    name: req.client.name || req.client.email,
+                    image: req.client.image,
+                    email: req.client.email
+                };
+
+            return {
+                id: req.id,
+                serviceTitle: req.service.title,
+                updatedAt: req.updatedAt,
+                lastMessage: req.messages[0]?.content || req.message, // Fallback to initial message
+                unreadCount: req._count.messages,
+                interlocutor
+            };
+        });
 
         return NextResponse.json({ requests: formattedRequests });
 

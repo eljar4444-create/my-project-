@@ -197,7 +197,7 @@ export default function ChatPage() {
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <div className="flex justify-between items-baseline mb-1">
-                                            <h3 className={cn("text-sm truncate", chat.unreadCount > 0 ? "font-bold text-black" : "font-semibold")}>
+                                            <h3 className={cn("text-sm truncate", (chat.unreadCount ?? 0) > 0 ? "font-bold text-black" : "font-semibold")}>
                                                 {chat.interlocutor?.name}
                                             </h3>
                                             <span className="text-[10px] text-gray-400">
@@ -205,11 +205,11 @@ export default function ChatPage() {
                                             </span>
                                         </div>
                                         <p className="text-xs text-blue-600 font-medium truncate mb-0.5">{chat.serviceTitle}</p>
-                                        <p className={cn("text-xs truncate", chat.unreadCount > 0 ? "font-semibold text-gray-900" : "text-gray-500")}>
+                                        <p className={cn("text-xs truncate", (chat.unreadCount ?? 0) > 0 ? "font-semibold text-gray-900" : "text-gray-500")}>
                                             {chat.lastMessage}
                                         </p>
                                     </div>
-                                    {chat.unreadCount > 0 && (
+                                    {(chat.unreadCount ?? 0) > 0 && (
                                         <div className="absolute right-3 top-1/2 -translate-y-1/2 h-2 w-2 rounded-full bg-blue-500" />
                                     )}
                                 </button>

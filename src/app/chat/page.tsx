@@ -43,6 +43,7 @@ export default function ChatPage() {
     const [isMessagesLoading, setIsMessagesLoading] = useState(false);
     const [newMessage, setNewMessage] = useState('');
     const [currentService, setCurrentService] = useState<any>(null);
+    const [showServiceInfo, setShowServiceInfo] = useState(false);
 
     const messagesContainerRef = useRef<HTMLDivElement>(null);
 
@@ -149,18 +150,18 @@ export default function ChatPage() {
     }
 
     return (
-        <div className="container mx-auto px-4 h-[calc(100vh-140px)] max-w-[1200px] mt-4 mb-4">
-            <div className="grid grid-cols-1 md:grid-cols-4 h-full gap-4 bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
+        <div className="container mx-auto px-0 md:px-4 h-[calc(100dvh-80px)] md:h-[calc(100vh-140px)] max-w-[1200px] mt-0 md:mt-4 mb-0 md:mb-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 h-full md:gap-4 bg-white md:rounded-xl shadow-lg border-b md:border border-gray-100 overflow-hidden relative">
                 {/* Sidebar (1 column) */}
                 <div className={cn(
-                    "col-span-1 border-r border-gray-100 flex flex-col h-full bg-gray-50/50 min-w-[300px] overflow-hidden",
+                    "col-span-1 border-r border-gray-100 flex flex-col h-full bg-white md:bg-gray-50/50 md:min-w-[300px] overflow-hidden",
                     selectedChatId ? "hidden md:flex" : "flex"
                 )}>
                     <div className="p-4 border-b border-gray-100 bg-white flex-shrink-0">
                         <h2 className="font-bold text-lg">Сообщения</h2>
                     </div>
 
-                    <div className="flex-1 overflow-y-auto p-2 space-y-2 min-h-0">
+                    <div className="flex-1 overflow-y-auto p-2 space-y-1 min-h-0">
                         {conversations.length === 0 ? (
                             <div className="text-center py-10 text-gray-400">
                                 <MessageSquare className="w-10 h-10 mx-auto mb-2 opacity-50" />
@@ -172,16 +173,16 @@ export default function ChatPage() {
                                     key={chat.id}
                                     onClick={() => setSelectedChatId(chat.id)}
                                     className={cn(
-                                        "w-full text-left p-3 rounded-lg transition-all hover:bg-white hover:shadow-sm flex items-start gap-3 relative",
+                                        "w-full text-left p-4 md:p-3 rounded-xl md:rounded-lg transition-all hover:bg-white hover:shadow-sm flex items-center md:items-start gap-4 md:gap-3 relative",
                                         selectedChatId === chat.id ? "bg-white shadow-md ring-1 ring-black/5" : "text-gray-600"
                                     )}
                                 >
                                     <div className="relative shrink-0">
                                         {chat.interlocutor?.image ? (
-                                            <img src={chat.interlocutor?.image} alt={chat.interlocutor?.name || ''} className="w-10 h-10 rounded-full object-cover" />
+                                            <img src={chat.interlocutor?.image} alt={chat.interlocutor?.name || ''} className="w-12 h-12 md:w-10 md:h-10 rounded-full object-cover" />
                                         ) : (
-                                            <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
-                                                <User className="w-5 h-5" />
+                                            <div className="w-12 h-12 md:w-10 md:h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                                                <User className="w-6 h-6 md:w-5 md:h-5" />
                                             </div>
                                         )}
                                         {(chat.unreadCount ?? 0) > 0 && (
@@ -221,23 +222,31 @@ export default function ChatPage() {
                     {selectedChatId ? (
                         <>
                             {/* Chat Header */}
-                            <div className="p-4 border-b border-gray-100 flex items-center gap-3 shadow-sm z-10 flex-shrink-0">
+                            <div className="p-3 md:p-4 border-b border-gray-100 flex items-center gap-3 shadow-sm z-10 flex-shrink-0 bg-white">
                                 <Button
                                     variant="ghost"
                                     size="icon"
-                                    className="md:hidden -ml-2"
+                                    className="md:hidden -ml-1 h-9 w-9"
                                     onClick={() => setSelectedChatId(null)}
                                 >
                                     <ArrowLeft className="w-5 h-5" />
                                 </Button>
-                                <div>
-                                    <h3 className="font-bold">Чат</h3>
-                                </div>
-                                {conversations.find(c => c.id === selectedChatId)?.serviceTitle && (
-                                    <span className="text-sm text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
+                                <div className="flex-1 min-w-0">
+                                    <h3 className="font-bold text-sm md:text-base truncate">
+                                        {conversations.find(c => c.id === selectedChatId)?.interlocutor?.name || 'Чат'}
+                                    </h3>
+                                    <p className="text-[10px] md:text-xs text-blue-600 font-medium truncate">
                                         {conversations.find(c => c.id === selectedChatId)?.serviceTitle}
-                                    </span>
-                                )}
+                                    </p>
+                                </div>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="md:hidden text-xs h-8 px-2"
+                                    onClick={() => setShowServiceInfo(true)}
+                                >
+                                    Услуга
+                                </Button>
                             </div>
 
                             {/* Messages */}
@@ -282,22 +291,22 @@ export default function ChatPage() {
                             </div>
 
                             {/* Input */}
-                            <div className="p-4 border-t border-gray-100 bg-white relative z-20 flex-shrink-0">
-                                <form onSubmit={handleSendMessage} className="flex gap-2">
+                            <div className="p-3 md:p-4 border-t border-gray-100 bg-white relative z-20 flex-shrink-0">
+                                <form onSubmit={handleSendMessage} className="flex gap-2 items-center">
                                     <input
                                         type="text"
                                         value={newMessage}
                                         onChange={e => setNewMessage(e.target.value)}
                                         placeholder="Напишите сообщение..."
-                                        className="flex-1 px-4 py-2 bg-gray-100 rounded-full border-none focus:ring-2 focus:ring-blue-500 outline-none text-sm transition-all"
+                                        className="flex-1 px-4 py-2.5 bg-gray-100 rounded-2xl border-none focus:ring-2 focus:ring-blue-500 outline-none text-sm transition-all shadow-inner"
                                     />
                                     <Button
                                         type="submit"
                                         size="icon"
-                                        className="rounded-full bg-blue-600 hover:bg-blue-700 w-10 h-10 shrink-0"
+                                        className="rounded-full bg-blue-600 hover:bg-blue-700 w-10 h-10 shrink-0 shadow-md transition-transform active:scale-95"
                                         disabled={!newMessage.trim()}
                                     >
-                                        <Send className="w-4 h-4" />
+                                        <Send className="w-4 h-4 fill-white" />
                                     </Button>
                                 </form>
                             </div>
@@ -312,11 +321,20 @@ export default function ChatPage() {
                     )}
                 </div>
 
-                {/* Service Info Panel (1 column) */}
-                <div className="col-span-1 hidden md:flex flex-col h-full bg-gray-50/30 p-6 overflow-y-auto min-h-0">
+                {/* Service Info Panel (1 column / Mobile Overlay) */}
+                <div className={cn(
+                    "col-span-1 flex flex-col h-full bg-white md:bg-gray-50/30 p-6 overflow-y-auto min-h-0 z-30 transition-all duration-300",
+                    "fixed inset-0 md:relative md:flex",
+                    showServiceInfo ? "translate-x-0" : "translate-x-full md:translate-x-0",
+                    !selectedChatId && "hidden"
+                )}>
                     {selectedChatId && currentService ? (
                         <div className="space-y-6">
-                            <h3 className="font-bold text-gray-900 text-lg">Информация об услуге</h3>
+                            <div className="flex justify-between items-center md:hidden mb-2">
+                                <h3 className="font-bold text-gray-900 text-lg">Информация</h3>
+                                <Button variant="ghost" size="sm" onClick={() => setShowServiceInfo(false)}>Закрыть</Button>
+                            </div>
+                            <h3 className="font-bold text-gray-900 text-lg hidden md:block">Информация об услуге</h3>
 
                             <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
                                 {currentService.photos && currentService.photos.length > 0 && (
@@ -324,7 +342,7 @@ export default function ChatPage() {
                                         <img src={currentService.photos[0].url} alt={currentService.title} className="w-full h-full object-cover" />
                                     </div>
                                 )}
-                                <h4 className="font-bold text-gray-900 mb-2">{currentService.title}</h4>
+                                <h4 className="font-bold text-gray-900 mb-2 truncate">{currentService.title}</h4>
                                 <div className="text-2xl font-bold text-blue-600 mb-4">{currentService.price} €</div>
 
                                 <Button className="w-full bg-black text-white hover:bg-gray-800 rounded-xl h-10" asChild>

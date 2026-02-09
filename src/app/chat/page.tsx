@@ -54,6 +54,14 @@ export default function ChatPage() {
     };
 
     useEffect(() => {
+        // Prevent body scroll only on mobile for better app-like feel
+        if (window.innerWidth < 768) {
+            document.body.style.overflow = 'hidden';
+            return () => { document.body.style.overflow = ''; };
+        }
+    }, []);
+
+    useEffect(() => {
         // Poll for new conversations
         fetchConversations();
         const interval = setInterval(fetchConversations, 15000);
@@ -151,10 +159,11 @@ export default function ChatPage() {
 
     return (
         <div className={cn(
-            "container mx-auto px-0 md:px-4 max-w-[1200px] md:mt-4 md:mb-4 transition-all pb-0",
-            "fixed inset-x-0 top-[112px] bottom-0 z-10 md:relative md:top-0 md:h-[calc(100vh-140px)]"
+            "container mx-auto px-0 md:px-4 max-w-[1200px] transition-all",
+            "h-[calc(100svh-130px)] md:h-[calc(100vh-140px)] mt-0 md:mt-4 mb-0 md:mb-4",
+            "flex flex-col overscroll-none"
         )}>
-            <div className="grid grid-cols-1 md:grid-cols-4 h-full md:gap-4 bg-white md:rounded-xl shadow-lg md:border border-gray-100 overflow-hidden relative">
+            <div className="grid grid-cols-1 md:grid-cols-4 h-full md:gap-4 bg-white md:rounded-xl shadow-lg md:border border-gray-100 overflow-hidden relative flex-1 min-h-0">
                 {/* Sidebar (1 column) */}
                 <div className={cn(
                     "col-span-1 border-r border-gray-100 flex flex-col h-full bg-white md:bg-gray-50/50 md:min-w-[300px] overflow-hidden",

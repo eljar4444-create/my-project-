@@ -231,7 +231,7 @@ export default function ChatPage() {
                                     <ArrowLeft className="w-5 h-5" />
                                 </Button>
                                 <div>
-                                    <h3 className="font-bold">Чат <span className="text-xs text-gray-300 font-normal">v3.0</span></h3>
+                                    <h3 className="font-bold">Чат</h3>
                                 </div>
                                 {conversations.find(c => c.id === selectedChatId)?.serviceTitle && (
                                     <span className="text-sm text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">

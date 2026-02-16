@@ -1,217 +1,63 @@
+// app/search/page.tsx
+export const dynamic = 'force-dynamic'; // Отключаем кэш
+export const revalidate = 0;
 
-import { Button } from '@/components/ui/button';
-import { Search, LayoutGrid, CheckCircle2, ArrowRight, ArrowLeft } from 'lucide-react';
-import Link from 'next/link';
-import { cn } from '@/lib/utils';
-import prisma from '@/lib/prisma';
-import { ServiceCard } from '@/components/ServiceCard';
-
-// Categories Configuration (Same as before)
-// Categories Configuration (Updated to match DB seeds)
-import { CATEGORIES, SUB_CATEGORIES } from '@/constants/categories';
-
-import { auth } from '@/auth';
+import { prisma } from "@/lib/prisma";
+import Link from "next/link";
 
 export default async function SearchPage({
-    searchParams
+  searchParams,
 }: {
-    searchParams: {
-        category?: string;
-        subcategory?: string;
-        q?: string;
-        location?: string;
-        lat?: string;
-        lng?: string;
-        radius?: string;
-    }
+  searchParams: { [key: string]: string | string[] | undefined };
 }) {
-    const session = await auth();
-    const user = session?.user;
+  console.log("--- SEARCH PAGE RENDER START ---");
+  
+  // 1. Пробуем получить всех, игнорируя фильтры
+  let profiles = [];
+  let error = null;
 
-    const categoryId = searchParams.category;
-    const subcategory = searchParams.subcategory;
-    const query = searchParams.q;
+  try {
+    profiles = await prisma.profile.findMany({
+       // БЕЗ WHERE! Просто дай мне всё, что есть.
+      take: 10,
+    });
+    console.log("Profiles found:", profiles.length);
+  } catch (e: any) {
+    console.error("DB Error:", e);
+    error = e.message;
+  }
 
-    // Determine current View Step
-    // Step 1: No category -> Show Categories List
-    // Step 2: Category selected -> Show Subcategories
-    // Step 3: Subcategory selected -> Show Services
+  return (
+    <div className="p-10 bg-gray-50 min-h-screen text-black">
+      <div className="max-w-4xl mx-auto">
+        
+        <h1 className="text-3xl font-bold mb-6">🔍 ТЕСТ БАЗЫ ДАННЫХ</h1>
+        
+        <Link href="/" className="text-blue-500 underline mb-8 block">← На главную</Link>
 
-    // Unified View Steps
-    // Step 1: No category -> Show Categories List
-    // Step 2: Category selected -> Show Services with Subcategory Chips
+        {/* Блок ошибок */}
+        {error && (
+          <div className="bg-red-100 border border-red-500 text-red-700 p-4 rounded mb-6">
+            <h2 className="font-bold">ОШИБКА ПОДКЛЮЧЕНИЯ:</h2>
+            <pre className="whitespace-pre-wrap">{error}</pre>
+          </div>
+        )}
 
-    const viewStep = categoryId ? 2 : 1;
-
-    // Data Fetching for Step 2 (Results)
-    let services: any[] = [];
-    if (viewStep === 2) {
-        const whereClause: any = {
-            status: 'APPROVED',
-            category: {
-                slug: categoryId
-            }
-        };
-
-        if (subcategory) {
-            // Check implicit subcategory field OR title/desc matches
-            whereClause.OR = [
-                { subcategory: subcategory }, // Direct match
-                { title: { contains: subcategory } },
-                { description: { contains: subcategory } },
-            ];
-        }
-
-        // Fetch raw services first, then filter by location in memory (SQLite limitation)
-        let rawServices = await prisma.service.findMany({
-            where: whereClause,
-            include: {
-                providerProfile: {
-                    include: { user: true }
-                },
-                category: true,
-                city: true
-            }
-        });
-
-        // Filter by Location if coordinates provided
-        const lat = searchParams.lat ? parseFloat(searchParams.lat) : null;
-        const lng = searchParams.lng ? parseFloat(searchParams.lng) : null;
-        const radius = searchParams.radius ? parseFloat(searchParams.radius) : 10; // default 10km
-
-        if (lat && lng) {
-            services = rawServices.filter(service => {
-                if (!service.latitude || !service.longitude) return false;
-
-                // Simple Haversine implementation
-                const R = 6371; // Earth radius in km
-                const dLat = (service.latitude - lat) * Math.PI / 180;
-                const dLon = (service.longitude - lng) * Math.PI / 180;
-                const a =
-                    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                    Math.cos(lat * Math.PI / 180) * Math.cos(service.latitude * Math.PI / 180) *
-                    Math.sin(dLon / 2) * Math.sin(dLon / 2);
-                const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-                const distance = R * c;
-
-                return distance <= radius;
-            });
-        } else if (searchParams.location) {
-            // Fallback: Filter by city name OR slug text match if no coordinates
-            const locLower = searchParams.location.toLowerCase();
-            services = rawServices.filter(service =>
-                service.city?.name.toLowerCase().includes(locLower) ||
-                service.city?.slug?.toLowerCase().includes(locLower)
-            );
-        } else {
-            services = rawServices;
-        }
-    }
-
-    // Map category ID to Name
-    const categoryName = CATEGORIES.find(c => c.id === categoryId)?.name;
-    const currentSubcategories = categoryId ? (SUB_CATEGORIES[categoryId] || []) : [];
-
-    return (
-        <div className="container mx-auto px-4 max-w-7xl font-sans text-slate-900">
-            {/* Main Content */}
-            <main className="w-full py-8">
-
-                <div className="p-8 max-w-7xl mx-auto">
-                    {/* View 1: Categories Grid */}
-                    {viewStep === 1 && (
-                        <div>
-                            <h1 className="text-3xl font-bold mb-8">Выберите категорию</h1>
-                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                                {CATEGORIES.map(cat => (
-                                    <Link key={cat.id} href={`/search?category=${cat.id}`} className="bg-white p-6 rounded-2xl shadow-sm hover:shadow-md transition-all flex flex-col items-center text-center gap-4 group border border-transparent hover:border-blue-100">
-                                        <div className="text-4xl group-hover:scale-110 transition-transform duration-300">{cat.icon}</div>
-                                        <span className="font-bold text-lg group-hover:text-blue-600 transition-colors">{cat.name}</span>
-                                    </Link>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-
-                    {/* View 2: Services List (with Subcategory Chips) */}
-                    {viewStep === 2 && (
-                        <div>
-                            <div className="mb-6">
-                                <Link href="/search" className="text-gray-400 hover:text-black flex items-center gap-2 text-sm font-medium mb-4">
-                                    <ArrowLeft className="w-4 h-4" /> Все категории
-                                </Link>
-                                <div className="flex flex-col gap-4">
-                                    <div>
-                                        <h1 className="text-3xl font-bold">{subcategory || categoryName}</h1>
-                                        <p className="text-gray-500 mt-2">
-                                            Найдено {services.length} исполнителей
-                                            {subcategory && ` по запросу "${subcategory}"`}
-                                        </p>
-                                    </div>
-
-                                    {/* Subcategory Chips */}
-                                    {currentSubcategories.length > 0 && (
-                                        <div className="flex flex-wrap gap-2 mt-2">
-                                            <Link
-                                                href={`/search?category=${categoryId}`}
-                                                className={cn(
-                                                    "px-4 py-2 rounded-full text-sm font-medium transition-colors border",
-                                                    !subcategory
-                                                        ? "bg-black text-white border-black"
-                                                        : "bg-white text-gray-700 border-gray-200 hover:border-gray-300"
-                                                )}
-                                            >
-                                                Все
-                                            </Link>
-                                            {currentSubcategories.map(sub => (
-                                                <Link
-                                                    key={sub}
-                                                    href={`/search?category=${categoryId}&subcategory=${encodeURIComponent(sub)}`}
-                                                    className={cn(
-                                                        "px-4 py-2 rounded-full text-sm font-medium transition-colors border",
-                                                        subcategory === sub
-                                                            ? "bg-black text-white border-black"
-                                                            : "bg-white text-gray-700 border-gray-200 hover:border-gray-300"
-                                                    )}
-                                                >
-                                                    {sub}
-                                                </Link>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-1 gap-4">
-                                {services.map(service => (
-                                    <ServiceCard
-                                        key={service.id}
-                                        service={{
-                                            ...service,
-                                            category: service.category.name,
-                                            city: service.city?.name || '',
-                                            provider: {
-                                                name: service.providerProfile.user.name || '',
-                                                email: service.providerProfile.user.email || '',
-                                                image: service.providerProfile.user.image
-                                            }
-                                        }}
-                                        variant="horizontal"
-                                    />
-                                ))}
-                                {services.length === 0 && (
-                                    <div className="col-span-full py-20 text-center bg-white rounded-3xl border border-dashed border-gray-200">
-                                        <p className="text-gray-500 text-lg">Нет услуг по выбранным параметрам</p>
-                                        <Link href="/create-order">
-                                            <Button className="mt-4">Создать заказ</Button>
-                                        </Link>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    )}
-                </div>
-            </main>
+        {/* Блок успеха */}
+        <div className="bg-green-100 border border-green-500 text-green-800 p-4 rounded mb-6">
+            <p className="font-bold text-xl">Найдено профилей: {profiles.length}</p>
+            <p className="text-sm text-gray-600">Если тут 0 — значит база пустая или мы не в той базе.</p>
         </div>
-    );
+
+        {/* Сырые данные */}
+        <div className="bg-white p-6 rounded shadow">
+            <h3 className="font-bold mb-4">Данные из базы (RAW JSON):</h3>
+            <pre className="bg-gray-900 text-green-400 p-4 rounded overflow-auto text-xs">
+                {JSON.stringify(profiles, null, 2)}
+            </pre>
+        </div>
+
+      </div>
+    </div>
+  );
 }
